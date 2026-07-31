@@ -1,7 +1,9 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { AdminRoute, ProtectedRoute } from './auth/RouteGuards'
 import { AppShell } from './components/AppShell'
 import { AdminStudioPage } from './pages/AdminStudioPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { LoginPage } from './pages/LoginPage'
 import { ResearchDetailPage } from './pages/ResearchDetailPage'
 import { ResearchLibraryPage } from './pages/ResearchLibraryPage'
 import { SettingsPage } from './pages/SettingsPage'
@@ -9,12 +11,13 @@ import { SettingsPage } from './pages/SettingsPage'
 export default function App() {
   return (
     <Routes>
-      <Route element={<AppShell />}>
+      <Route path="login" element={<LoginPage />} />
+      <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
         <Route index element={<DashboardPage />} />
         <Route path="research" element={<ResearchLibraryPage />} />
         <Route path="research/:researchId" element={<ResearchDetailPage />} />
-        <Route path="admin" element={<AdminStudioPage />} />
-        <Route path="settings" element={<SettingsPage />} />
+        <Route path="admin" element={<AdminRoute><AdminStudioPage /></AdminRoute>} />
+        <Route path="settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
       </Route>
       <Route path="*" element={<Navigate replace to="/" />} />
     </Routes>
