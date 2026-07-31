@@ -3,6 +3,7 @@ export type SubscriptionPlan = 'free' | 'pro'
 export type ResearchStatus = 'draft' | 'ai_generated' | 'in_review' | 'published' | 'archived'
 export type ResearchAccess = 'free' | 'pro'
 export type ResearchVerdict = 'layak_diuji' | 'perlu_dipantau' | 'tidak_disyorkan'
+export type ResearchIntegrity = 'reviewed' | 'limited_information' | 'update_required'
 export type GenerationStatus = 'queued' | 'running' | 'completed' | 'failed'
 
 export interface ProfileRow {
@@ -28,12 +29,16 @@ export interface ResearchRow {
   official_description: string
   product_image_path: string | null
   research_snapshot: string | null
+  product_pain: string | null
   verdict: ResearchVerdict | null
   verdict_reason: string | null
   research_insight: string | null
   execution_playbook: Record<string, unknown>[]
   suitable_for: string[]
   content_angles: Record<string, unknown>[]
+  reference_videos: Record<string, unknown>[]
+  integrity_status: ResearchIntegrity
+  last_verified_at: string | null
   status: ResearchStatus
   access_level: ResearchAccess
   is_featured: boolean

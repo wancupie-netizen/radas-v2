@@ -6,6 +6,7 @@ export interface ContentAngle { title: string; hook: string; rationale: string }
 export interface PlaybookStep { step: string; action: string; notes: string }
 export interface AIResearchOutput {
   research_snapshot: string
+  product_pain: string
   verdict: ResearchVerdict
   verdict_reason: string
   research_insight: string
@@ -38,6 +39,7 @@ export async function saveResearchReview(id: string, output: AIResearchOutput) {
   if (!supabase) throw new Error('Supabase belum dikonfigurasi.')
   const { data, error } = await supabase.from('researches').update({
     research_snapshot: output.research_snapshot,
+    product_pain: output.product_pain,
     verdict: output.verdict,
     verdict_reason: output.verdict_reason,
     research_insight: output.research_insight,

@@ -14,6 +14,7 @@ const researchSchema = {
   additionalProperties: false,
   properties: {
     research_snapshot: { type: 'string', description: 'Ringkasan padat produk dan peluang affiliate dalam Bahasa Melayu Malaysia.' },
+    product_pain: { type: 'string', description: 'Masalah utama pengguna yang cuba diselesaikan, berdasarkan fakta produk tanpa mereka tuntutan.' },
     verdict: { type: 'string', enum: ['layak_diuji', 'perlu_dipantau', 'tidak_disyorkan'] },
     verdict_reason: { type: 'string', description: 'Sebab editorial yang jelas tanpa skor angka.' },
     research_insight: { type: 'string', description: 'Analisis masalah pengguna, daya tarikan produk, risiko dan batas maklumat.' },
@@ -45,7 +46,7 @@ const researchSchema = {
       },
     },
   },
-  required: ['research_snapshot', 'verdict', 'verdict_reason', 'research_insight', 'suitable_for', 'content_angles', 'execution_playbook'],
+  required: ['research_snapshot', 'product_pain', 'verdict', 'verdict_reason', 'research_insight', 'suitable_for', 'content_angles', 'execution_playbook'],
 }
 
 function json(data: unknown, status = 200) {
@@ -146,6 +147,7 @@ Deno.serve(async (request) => {
 
     const { error: updateError } = await admin.from('researches').update({
       research_snapshot: output.research_snapshot,
+      product_pain: output.product_pain,
       verdict: output.verdict,
       verdict_reason: output.verdict_reason,
       research_insight: output.research_insight,
