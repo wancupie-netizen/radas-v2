@@ -1,9 +1,10 @@
-import { AlertCircle, BrainCircuit, CheckCircle2, Edit3, ImagePlus, Link2, LoaderCircle, Plus, Save, Sparkles, Trash2, X } from 'lucide-react'
+import { AlertCircle, Archive, BrainCircuit, CheckCircle2, Edit3, Eye, ImagePlus, Link2, LoaderCircle, Plus, Save, Sparkles, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { generateResearch } from '../lib/research-ai'
+import { archiveResearch } from '../lib/research-publish'
 import { createResearchDraft, deleteResearchDraft, getProductImageUrl, listAdminResearch, removeProductImage, updateResearchDraft, uploadProductImage } from '../lib/research-admin'
 import type { ResearchAccess, ResearchRow } from '../types/database'
 
@@ -142,6 +143,18 @@ export function AdminStudioPage() {
     } finally { setGeneratingId(null) }
   }
 
+  // RADAS PC-007: published research is archived, never regenerated or deleted directly.
+  async function handleArchive(item: ResearchRow) {
+    if (!window.confirm(`Arkibkan "${item.product_name}"? Research ini akan dikeluarkan daripada Research Library.`)) return
+    try {
+      await archiveResearch(item.id)
+      setMessage({ type: 'success', text: 'Research telah diarkibkan.' })
+      await loadResearch()
+    } catch (error) {
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Research tidak dapat diarkibkan.' })
+    }
+  }
+
   async function handleDelete(item: ResearchRow) {
     if (!window.confirm(`Padam draf "${item.product_name}"? Tindakan ini tidak boleh dibatalkan.`)) return
     try { await deleteResearchDraft(item); if (editing?.id === item.id) resetForm(); setMessage({ type: 'success', text: 'Draf research telah dipadam.' }); await loadResearch() }
@@ -171,7 +184,15 @@ export function AdminStudioPage() {
         </form>
         <aside className="draft-panel">
           <div className="draft-panel-head"><div><span className="eyebrow">Editorial queue</span><h2>Research tersimpan</h2></div><button className="icon-button" onClick={resetForm} title="Research baharu"><Plus /></button></div>
-          {loading ? <div className="draft-empty"><LoaderCircle className="spin" /><p>Memuatkan research...</p></div> : research.length === 0 ? <div className="draft-empty"><Sparkles /><h3>Belum ada draf</h3><p>Research pertama yang disimpan akan muncul di sini.</p></div> : <div className="draft-list">{research.map((item) => <article className="draft-item" key={item.id}>{item.product_image_path ? <img src={getProductImageUrl(item.product_image_path) ?? ''} alt="" /> : <span className="draft-placeholder">{item.product_name.slice(0, 2).toUpperCase()}</span>}<div className="draft-copy"><div><span className={`draft-status ${item.status}`}>{readableStatus(item.status)}</span><span>{item.access_level.toUpperCase()}</span></div><h3>{item.product_name}</h3><p>{item.platform} Â· {formatMoney(item.price)}</p></div><div className="draft-actions"><button className="ai-action" disabled={generatingId !== null} onClick={() => item.status === 'draft' ? void handleGenerate(item) : navigate(`/admin/research/${item.id}/review`)} aria-label={item.status === 'draft' ? `Jana AI untuk ${item.product_name}` : `Semak AI untuk ${item.product_name}`}>{generatingId === item.id ? <LoaderCircle className="spin" /> : <BrainCircuit />}</button><button onClick={() => startEdit(item)} aria-label={`Edit ${item.product_name}`}><Edit3 /></button><button className="danger" onClick={() => void handleDelete(item)} aria-label={`Padam ${item.product_name}`}><Trash2 /></button></div></article>)}</div>}
+          <div className="workflow-track" aria-label="Aliran status research"><span>Draf</span><i>â†’</i><span>AI Generated</span><i>â†’</i><span>Dalam Semakan</span><i>â†’</i><span>Diterbitkan</span></div>
+          {loading ? <div className="draft-empty"><LoaderCircle className="spin" /><p>Memuatkan research...</p></div> : research.length === 0 ? <div className="draft-empty"><Sparkles /><h3>Belum ada draf</h3><p>Research pertama yang disimpan akan muncul di sini.</p></div> : <div className="draft-list">{research.map((item) => <article className="draft-item" key={item.id}>{item.product_image_path ? <img src={getProductImageUrl(item.product_image_path) ?? ''} alt="" /> : <span className="draft-placeholder">{item.product_name.slice(0, 2).toUpperCase()}</span>}<div className="draft-copy"><div><span className={`draft-status ${item.status}`}>{readableStatus(item.status)}</span><span>{item.access_level.toUpperCase()}</span></div><h3>{item.product_name}</h3><p>{item.platform} Â· {formatMoney(item.price)}</p></div><div className="draft-actions workflow-actions">
+  {item.status === 'draft' ? <button className="queue-action ai-action" disabled={generatingId !== null} onClick={() => void handleGenerate(item)} title="Hasilkan research menggunakan AI">{generatingId === item.id ? <LoaderCircle className="spin" /> : <BrainCircuit />}<span>{generatingId === item.id ? 'Menjana...' : 'Jana dengan AI'}</span></button> : null}
+  {(item.status === 'ai_generated' || item.status === 'in_review') ? <button className="queue-action review-action" onClick={() => navigate(`/admin/research/${item.id}/review`)} title="Buka hasil AI sedia ada"><Eye /><span>Buka hasil</span></button> : null}
+  {item.status === 'published' ? <button className="queue-action review-action" onClick={() => navigate(`/research/${item.slug}`)} title="Lihat research yang diterbitkan"><Eye /><span>Lihat research</span></button> : null}
+  {item.status !== 'published' ? <button onClick={() => startEdit(item)} aria-label={`Edit ${item.product_name}`} title="Edit maklumat produk"><Edit3 /></button> : null}
+  {item.status === 'published' ? <button className="archive-action" onClick={() => void handleArchive(item)} aria-label={`Arkibkan ${item.product_name}`} title="Arkibkan research"><Archive /></button> : null}
+  {(item.status === 'draft' || item.status === 'archived') ? <button className="danger" onClick={() => void handleDelete(item)} aria-label={`Padam ${item.product_name}`} title="Padam research"><Trash2 /></button> : null}
+</div></article>)}</div>}
         </aside>
       </div>
     </>
