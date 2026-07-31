@@ -1,7 +1,9 @@
-import { AlertCircle, CheckCircle2, Edit3, ImagePlus, Link2, LoaderCircle, Plus, Save, Sparkles, Trash2, X } from 'lucide-react'
+import { AlertCircle, BrainCircuit, CheckCircle2, Edit3, ImagePlus, Link2, LoaderCircle, Plus, Save, Sparkles, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { generateResearch } from '../lib/research-ai'
 import { createResearchDraft, deleteResearchDraft, getProductImageUrl, listAdminResearch, removeProductImage, updateResearchDraft, uploadProductImage } from '../lib/research-admin'
 import type { ResearchAccess, ResearchRow } from '../types/database'
 
@@ -50,6 +52,7 @@ function readableStatus(status: ResearchRow['status']) {
 
 export function AdminStudioPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [form, setForm] = useState<DraftForm>(readSavedDraft)
   const [research, setResearch] = useState<ResearchRow[]>([])
   const [editing, setEditing] = useState<ResearchRow | null>(null)
@@ -57,6 +60,7 @@ export function AdminStudioPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [generatingId, setGeneratingId] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const loadResearch = useCallback(async () => {
@@ -127,6 +131,17 @@ export function AdminStudioPage() {
     } finally { setSaving(false) }
   }
 
+  async function handleGenerate(item: ResearchRow) {
+    setGeneratingId(item.id); setMessage(null)
+    try {
+      await generateResearch(item.id)
+      await loadResearch()
+      navigate(`/admin/research/${item.id}/review`)
+    } catch (error) {
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'AI generation gagal.' })
+    } finally { setGeneratingId(null) }
+  }
+
   async function handleDelete(item: ResearchRow) {
     if (!window.confirm(`Padam draf "${item.product_name}"? Tindakan ini tidak boleh dibatalkan.`)) return
     try { await deleteResearchDraft(item); if (editing?.id === item.id) resetForm(); setMessage({ type: 'success', text: 'Draf research telah dipadam.' }); await loadResearch() }
@@ -156,7 +171,7 @@ export function AdminStudioPage() {
         </form>
         <aside className="draft-panel">
           <div className="draft-panel-head"><div><span className="eyebrow">Editorial queue</span><h2>Research tersimpan</h2></div><button className="icon-button" onClick={resetForm} title="Research baharu"><Plus /></button></div>
-          {loading ? <div className="draft-empty"><LoaderCircle className="spin" /><p>Memuatkan research...</p></div> : research.length === 0 ? <div className="draft-empty"><Sparkles /><h3>Belum ada draf</h3><p>Research pertama yang disimpan akan muncul di sini.</p></div> : <div className="draft-list">{research.map((item) => <article className="draft-item" key={item.id}>{item.product_image_path ? <img src={getProductImageUrl(item.product_image_path) ?? ''} alt="" /> : <span className="draft-placeholder">{item.product_name.slice(0, 2).toUpperCase()}</span>}<div className="draft-copy"><div><span className={`draft-status ${item.status}`}>{readableStatus(item.status)}</span><span>{item.access_level.toUpperCase()}</span></div><h3>{item.product_name}</h3><p>{item.platform} Â· {formatMoney(item.price)}</p></div><div className="draft-actions"><button onClick={() => startEdit(item)} aria-label={`Edit ${item.product_name}`}><Edit3 /></button><button className="danger" onClick={() => void handleDelete(item)} aria-label={`Padam ${item.product_name}`}><Trash2 /></button></div></article>)}</div>}
+          {loading ? <div className="draft-empty"><LoaderCircle className="spin" /><p>Memuatkan research...</p></div> : research.length === 0 ? <div className="draft-empty"><Sparkles /><h3>Belum ada draf</h3><p>Research pertama yang disimpan akan muncul di sini.</p></div> : <div className="draft-list">{research.map((item) => <article className="draft-item" key={item.id}>{item.product_image_path ? <img src={getProductImageUrl(item.product_image_path) ?? ''} alt="" /> : <span className="draft-placeholder">{item.product_name.slice(0, 2).toUpperCase()}</span>}<div className="draft-copy"><div><span className={`draft-status ${item.status}`}>{readableStatus(item.status)}</span><span>{item.access_level.toUpperCase()}</span></div><h3>{item.product_name}</h3><p>{item.platform} Â· {formatMoney(item.price)}</p></div><div className="draft-actions"><button className="ai-action" disabled={generatingId !== null} onClick={() => item.status === 'draft' ? void handleGenerate(item) : navigate(`/admin/research/${item.id}/review`)} aria-label={item.status === 'draft' ? `Jana AI untuk ${item.product_name}` : `Semak AI untuk ${item.product_name}`}>{generatingId === item.id ? <LoaderCircle className="spin" /> : <BrainCircuit />}</button><button onClick={() => startEdit(item)} aria-label={`Edit ${item.product_name}`}><Edit3 /></button><button className="danger" onClick={() => void handleDelete(item)} aria-label={`Padam ${item.product_name}`}><Trash2 /></button></div></article>)}</div>}
         </aside>
       </div>
     </>

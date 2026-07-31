@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AdminRoute, ProtectedRoute } from './auth/RouteGuards'
 import { AppShell } from './components/AppShell'
 import { AdminStudioPage } from './pages/AdminStudioPage'
+import { AIReviewPage } from './pages/AIReviewPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
 import { ResearchDetailPage } from './pages/ResearchDetailPage'
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="research" element={<ResearchLibraryPage />} />
         <Route path="research/:researchId" element={<ResearchDetailPage />} />
         <Route path="admin" element={<AdminRoute><AdminStudioPage /></AdminRoute>} />
+        <Route path="admin/research/:researchId/review" element={<AdminRoute><AIReviewPage /></AdminRoute>} />
         <Route path="settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
       </Route>
       <Route path="*" element={<Navigate replace to="/" />} />

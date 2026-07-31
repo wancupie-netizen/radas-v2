@@ -18,7 +18,9 @@ export function AppShell() {
   const [signingOut, setSigningOut] = useState(false)
   const location = useLocation()
   const { profile, user, signOut } = useAuth()
-  const pageName = pageNames[location.pathname] ?? 'Research Detail'
+  const pageName = location.pathname.includes('/admin/research/') && location.pathname.endsWith('/review')
+    ? 'AI Research Review'
+    : pageNames[location.pathname] ?? 'Research Detail'
   const isStaff = profile?.role === 'admin' || profile?.role === 'editor'
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Pengguna RADAS'
   const initials = displayName.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()
