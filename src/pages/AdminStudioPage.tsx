@@ -22,6 +22,8 @@ interface DraftForm {
 const emptyForm: DraftForm = { productName: '', category: '', platform: '', price: '', commission: '', productUrl: '', officialDescription: '', accessLevel: 'free' }
 const allowedImageTypes = new Set(['image/jpeg', 'image/png', 'image/webp'])
 const draftStorageKey = 'radas:admin-research-form:v1'
+const editStorageKeyPrefix = 'radas:admin-research-edit:v2:' // RADAS PC-008A2
+const activeEditStorageKey = 'radas:admin-research-active-edit:v2'
 
 function readSavedDraft(): DraftForm {
   try {
@@ -73,8 +75,15 @@ export function AdminStudioPage() {
 
   useEffect(() => { void loadResearch() }, [loadResearch])
   useEffect(() => {
-    if (!editing) window.localStorage.setItem(draftStorageKey, JSON.stringify(form))
+    const key = editing ? `${editStorageKeyPrefix}${editing.id}` : draftStorageKey
+    window.localStorage.setItem(key, JSON.stringify(form))
   }, [editing, form])
+  useEffect(() => {
+    const activeId = window.localStorage.getItem(activeEditStorageKey)
+    if (!activeId || editing) return
+    const activeItem = research.find((item) => item.id === activeId)
+    if (activeItem) startEdit(activeItem)
+  }, [research])
   useEffect(() => {
     if (!imageFile) return
     const url = URL.createObjectURL(imageFile)
@@ -89,12 +98,21 @@ export function AdminStudioPage() {
   }
 
   function resetForm() {
-    setForm(emptyForm); setEditing(null); setImageFile(null); setPreviewUrl(null); setMessage(null); window.localStorage.removeItem(draftStorageKey)
+    if (editing) window.localStorage.removeItem(`${editStorageKeyPrefix}${editing.id}`)
+    else window.localStorage.removeItem(draftStorageKey)
+    window.localStorage.removeItem(activeEditStorageKey)
+    setForm(emptyForm); setEditing(null); setImageFile(null); setPreviewUrl(null); setMessage(null)
   }
 
   function startEdit(item: ResearchRow) {
-    setEditing(item)
-    setForm({ productName: item.product_name, category: item.category, platform: item.platform, price: String(item.price), commission: item.commission_amount === null ? '' : String(item.commission_amount), productUrl: item.product_url, officialDescription: item.official_description, accessLevel: item.access_level })
+    const databaseForm: DraftForm = { productName: item.product_name, category: item.category, platform: item.platform, price: String(item.price), commission: item.commission_amount === null ? '' : String(item.commission_amount), productUrl: item.product_url, officialDescription: item.official_description, accessLevel: item.access_level }
+    let nextForm = databaseForm
+    try {
+      const saved = window.localStorage.getItem(`${editStorageKeyPrefix}${item.id}`)
+      if (saved) nextForm = { ...databaseForm, ...(JSON.parse(saved) as Partial<DraftForm>) }
+    } catch { window.localStorage.removeItem(`${editStorageKeyPrefix}${item.id}`) }
+    window.localStorage.setItem(activeEditStorageKey, item.id)
+    setEditing(item); setForm(nextForm)
     setImageFile(null); setPreviewUrl(getProductImageUrl(item.product_image_path)); setMessage(null)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -118,6 +136,8 @@ export function AdminStudioPage() {
       if (editing) {
         const oldPath = editing.product_image_path
         await updateResearchDraft(editing.id, input, uploadedPath ?? oldPath)
+        window.localStorage.removeItem(`${editStorageKeyPrefix}${editing.id}`)
+        window.localStorage.removeItem(activeEditStorageKey)
         if (uploadedPath && oldPath) await removeProductImage(oldPath)
         setMessage({ type: 'success', text: 'Draf research berjaya dikemas kini.' })
       } else {
@@ -184,12 +204,12 @@ export function AdminStudioPage() {
         </form>
         <aside className="draft-panel">
           <div className="draft-panel-head"><div><span className="eyebrow">Editorial queue</span><h2>Research tersimpan</h2></div><button className="icon-button" onClick={resetForm} title="Research baharu"><Plus /></button></div>
-          <div className="workflow-track" aria-label="Aliran status research"><span>Draf</span><i>â†’</i><span>AI Generated</span><i>â†’</i><span>Dalam Semakan</span><i>â†’</i><span>Diterbitkan</span></div>
-          {loading ? <div className="draft-empty"><LoaderCircle className="spin" /><p>Memuatkan research...</p></div> : research.length === 0 ? <div className="draft-empty"><Sparkles /><h3>Belum ada draf</h3><p>Research pertama yang disimpan akan muncul di sini.</p></div> : <div className="draft-list">{research.map((item) => <article className="draft-item" key={item.id}>{item.product_image_path ? <img src={getProductImageUrl(item.product_image_path) ?? ''} alt="" /> : <span className="draft-placeholder">{item.product_name.slice(0, 2).toUpperCase()}</span>}<div className="draft-copy"><div><span className={`draft-status ${item.status}`}>{readableStatus(item.status)}</span><span>{item.access_level.toUpperCase()}</span></div><h3>{item.product_name}</h3><p>{item.platform} Â· {formatMoney(item.price)}</p></div><div className="draft-actions workflow-actions">
+          <div className="workflow-track" aria-label="Aliran status research"><span>Draf</span><i aria-hidden="true">{'\u2192'}</i><span>AI Generated</span><i aria-hidden="true">{'\u2192'}</i><span>Dalam Semakan</span><i aria-hidden="true">{'\u2192'}</i><span>Diterbitkan</span></div>
+          {loading ? <div className="draft-empty"><LoaderCircle className="spin" /><p>Memuatkan research...</p></div> : research.length === 0 ? <div className="draft-empty"><Sparkles /><h3>Belum ada draf</h3><p>Research pertama yang disimpan akan muncul di sini.</p></div> : <div className="draft-list">{research.map((item) => <article className="draft-item" key={item.id}>{item.product_image_path ? <img src={getProductImageUrl(item.product_image_path) ?? ''} alt="" /> : <span className="draft-placeholder">{item.product_name.slice(0, 2).toUpperCase()}</span>}<div className="draft-copy"><div><span className={`draft-status ${item.status}`}>{readableStatus(item.status)}</span><span>{item.access_level.toUpperCase()}</span></div><h3>{item.product_name}</h3><p>{item.platform} / {formatMoney(item.price)}</p></div><div className="draft-actions workflow-actions">
   {item.status === 'draft' ? <button className="queue-action ai-action" disabled={generatingId !== null} onClick={() => void handleGenerate(item)} title="Hasilkan research menggunakan AI">{generatingId === item.id ? <LoaderCircle className="spin" /> : <BrainCircuit />}<span>{generatingId === item.id ? 'Menjana...' : 'Jana dengan AI'}</span></button> : null}
   {(item.status === 'ai_generated' || item.status === 'in_review') ? <button className="queue-action review-action" onClick={() => navigate(`/admin/research/${item.id}/review`)} title="Buka hasil AI sedia ada"><Eye /><span>Buka hasil</span></button> : null}
   {item.status === 'published' ? <button className="queue-action review-action" onClick={() => navigate(`/research/${item.slug}`)} title="Lihat research yang diterbitkan"><Eye /><span>Lihat research</span></button> : null}
-  {item.status !== 'published' ? <button onClick={() => startEdit(item)} aria-label={`Edit ${item.product_name}`} title="Edit maklumat produk"><Edit3 /></button> : null}
+  <button onClick={() => startEdit(item)} aria-label={`Edit ${item.product_name}`} title={item.status === 'published' ? 'Edit research diterbitkan' : 'Edit maklumat produk'}><Edit3 /></button>
   {item.status === 'published' ? <button className="archive-action" onClick={() => void handleArchive(item)} aria-label={`Arkibkan ${item.product_name}`} title="Arkibkan research"><Archive /></button> : null}
   {(item.status === 'draft' || item.status === 'archived') ? <button className="danger" onClick={() => void handleDelete(item)} aria-label={`Padam ${item.product_name}`} title="Padam research"><Trash2 /></button> : null}
 </div></article>)}</div>}
