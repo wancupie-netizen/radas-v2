@@ -28,7 +28,7 @@ export function SavedResearchPage() {
       <section className="page-heading"><span className="eyebrow">Watchlist peribadi</span><h1>Research Tersimpan</h1><p>Simpan research yang ingin dirujuk, diuji atau digunakan semasa merancang content.</p></section>
       {loading ? <div className="library-state"><LoaderCircle className="spin" /><p>Memuatkan research tersimpan...</p></div>
         : error ? <div className="library-state error"><p>{error}</p></div>
-          : research.length === 0 ? <div className="library-state saved-empty"><Bookmark /><h2>Belum ada research tersimpan</h2><p>Buka Research Library dan tekan â€œSimpan researchâ€ pada produk yang mahu dirujuk kemudian.</p><Link className="button button-primary" to="/research">Buka Research Library</Link></div>
+          : research.length === 0 ? <div className="library-state saved-empty"><Bookmark /><h2>Belum ada research tersimpan</h2><p>Buka Research Library dan tekan &ldquo;Simpan Research&rdquo; pada produk yang ingin dirujuk kemudian.</p><Link className="button button-primary" to="/research">Buka Research Library</Link></div>
             : <><div className="result-line"><span>{research.length} research tersimpan</span><span>Untuk akaun anda sahaja</span></div><section className="research-grid">{research.map((item) => <LiveResearchCard item={item} key={item.id} />)}</section></>}
     </>
   )
