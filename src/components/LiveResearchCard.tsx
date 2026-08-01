@@ -1,4 +1,4 @@
-import { ArrowUpRight, Store } from 'lucide-react'
+import { ArrowUpRight, Store, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { getProductImageUrl } from '../lib/research-admin'
 import type { ResearchRow } from '../types/database'
@@ -19,7 +19,7 @@ export function LiveResearchCard({ item }: { item: ResearchRow }) {
         <div className="card-meta"><span>{item.category}</span><span>&bull;</span><span>{item.access_level.toUpperCase()}</span></div>
         <h3>{item.product_name}</h3>
         <p>{item.research_snapshot}</p>
-        <div className="card-platform"><Store />{item.platform}</div>
+        <div className="card-context"><span><Store />{item.platform}</span>{item.creator_count !== null ? <span><Users />{Number(item.creator_count).toLocaleString('ms-MY')} creator</span> : null}</div>
         <div className="card-numbers"><div><span>Harga</span><strong>{money(item.price)}</strong></div><div><span>Anggaran komisen</span><strong>{money(item.commission_amount)}</strong></div></div>
         <div className="card-footer"><span className={`verdict ${item.verdict === 'layak_diuji' ? 'positive' : item.verdict === 'perlu_dipantau' ? 'watch' : 'negative'}`}>{verdict}</span><Link to={`/research/${item.slug}`}>Buka research <ArrowUpRight /></Link></div>
       </div>

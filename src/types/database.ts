@@ -25,6 +25,7 @@ export interface ResearchRow {
   price: number
   commission_amount: number | null
   commission_rate: number | null
+  creator_count: number | null
   product_url: string
   official_description: string
   product_image_path: string | null
@@ -37,6 +38,7 @@ export interface ResearchRow {
   suitable_for: string[]
   content_angles: Record<string, unknown>[]
   reference_videos: Record<string, unknown>[]
+  video_ideas: Record<string, unknown>[]
   integrity_status: ResearchIntegrity
   last_verified_at: string | null
   status: ResearchStatus
@@ -65,5 +67,11 @@ export interface ResearchGenerationRow {
   error_message: string | null
   started_at: string | null
   completed_at: string | null
+  created_at: string
+}
+
+export interface WatchlistRow {
+  user_id: string
+  research_id: string
   created_at: string
 }

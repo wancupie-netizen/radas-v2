@@ -14,12 +14,13 @@ interface DraftForm {
   platform: string
   price: string
   commission: string
+  creatorCount: string
   productUrl: string
   officialDescription: string
   accessLevel: ResearchAccess
 }
 
-const emptyForm: DraftForm = { productName: '', category: '', platform: '', price: '', commission: '', productUrl: '', officialDescription: '', accessLevel: 'free' }
+const emptyForm: DraftForm = { productName: '', category: '', platform: '', price: '', commission: '', creatorCount: '', productUrl: '', officialDescription: '', accessLevel: 'free' }
 const allowedImageTypes = new Set(['image/jpeg', 'image/png', 'image/webp'])
 const draftStorageKey = 'radas:admin-research-form:v1'
 const editStorageKeyPrefix = 'radas:admin-research-edit:v2:' // RADAS PC-008A2
@@ -36,6 +37,7 @@ function readSavedDraft(): DraftForm {
       platform: typeof parsed.platform === 'string' ? parsed.platform : '',
       price: typeof parsed.price === 'string' ? parsed.price : '',
       commission: typeof parsed.commission === 'string' ? parsed.commission : '',
+      creatorCount: typeof parsed.creatorCount === 'string' ? parsed.creatorCount : '',
       productUrl: typeof parsed.productUrl === 'string' ? parsed.productUrl : '',
       officialDescription: typeof parsed.officialDescription === 'string' ? parsed.officialDescription : '',
       accessLevel: parsed.accessLevel === 'pro' ? 'pro' : 'free',
@@ -105,7 +107,7 @@ export function AdminStudioPage() {
   }
 
   function startEdit(item: ResearchRow) {
-    const databaseForm: DraftForm = { productName: item.product_name, category: item.category, platform: item.platform, price: String(item.price), commission: item.commission_amount === null ? '' : String(item.commission_amount), productUrl: item.product_url, officialDescription: item.official_description, accessLevel: item.access_level }
+    const databaseForm: DraftForm = { productName: item.product_name, category: item.category, platform: item.platform, price: String(item.price), commission: item.commission_amount === null ? '' : String(item.commission_amount), creatorCount: item.creator_count === null ? '' : String(item.creator_count), productUrl: item.product_url, officialDescription: item.official_description, accessLevel: item.access_level }
     let nextForm = databaseForm
     try {
       const saved = window.localStorage.getItem(`${editStorageKeyPrefix}${item.id}`)
@@ -132,7 +134,7 @@ export function AdminStudioPage() {
     let uploadedPath: string | null = null
     try {
       if (imageFile) uploadedPath = await uploadProductImage(imageFile, user.id)
-      const input = { productName: form.productName, category: form.category, platform: form.platform, price: Number(form.price), commissionAmount: form.commission ? Number(form.commission) : null, productUrl: form.productUrl, officialDescription: form.officialDescription, accessLevel: form.accessLevel }
+      const input = { productName: form.productName, category: form.category, platform: form.platform, price: Number(form.price), commissionAmount: form.commission ? Number(form.commission) : null, creatorCount: form.creatorCount ? Number(form.creatorCount) : null, productUrl: form.productUrl, officialDescription: form.officialDescription, accessLevel: form.accessLevel }
       if (editing) {
         const oldPath = editing.product_image_path
         await updateResearchDraft(editing.id, input, uploadedPath ?? oldPath)
@@ -194,6 +196,7 @@ export function AdminStudioPage() {
             <label className="field"><span>Platform</span><select required value={form.platform} onChange={(event) => updateField('platform', event.target.value)}><option value="" disabled>Pilih platform</option><option>Shopee Affiliate</option><option>TikTok Shop</option><option>Involve Asia</option><option>Accesstrade</option><option>ClickAsia</option><option>Website Owner</option><option>Lain-lain</option></select></label>
             <label className="field"><span>Harga</span><div className="input-prefix"><b>RM</b><input required min="0" step="0.01" type="number" value={form.price} onChange={(event) => updateField('price', event.target.value)} placeholder="0.00" /></div></label>
             <label className="field"><span>Anggaran komisen</span><div className="input-prefix"><b>RM</b><input min="0" step="0.01" type="number" value={form.commission} onChange={(event) => updateField('commission', event.target.value)} placeholder="0.00" /></div></label>
+            <label className="field"><span>Jumlah creator (anggaran)</span><input min="0" step="1" type="number" value={form.creatorCount} onChange={(event) => updateField('creatorCount', event.target.value)} placeholder="Contoh: 4100" /><small>Kemas kini berdasarkan semakan platform.</small></label>
             <label className="field field-wide"><span>Pautan produk</span><div className="input-icon"><Link2 /><input required type="url" value={form.productUrl} onChange={(event) => updateField('productUrl', event.target.value)} placeholder="https://..." /></div></label>
             <label className="field field-wide"><span>Deskripsi rasmi</span><textarea required rows={7} value={form.officialDescription} onChange={(event) => updateField('officialDescription', event.target.value)} placeholder="Tampal deskripsi rasmi daripada penjual atau platform..." /><small>Gunakan fakta daripada halaman rasmi produk.</small></label>
             <label className="field"><span>Akses research</span><select value={form.accessLevel} onChange={(event) => updateField('accessLevel', event.target.value as ResearchAccess)}><option value="free">Free</option><option value="pro">Pro</option></select></label>

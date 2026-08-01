@@ -7,6 +7,7 @@ export interface ResearchDraftInput {
   platform: string
   price: number
   commissionAmount: number | null
+  creatorCount: number | null
   productUrl: string
   officialDescription: string
   accessLevel: ResearchAccess
@@ -38,6 +39,7 @@ export async function createResearchDraft(input: ResearchDraftInput, authorId: s
     platform: input.platform,
     price: input.price,
     commission_amount: input.commissionAmount,
+    creator_count: input.creatorCount,
     product_url: input.productUrl.trim(),
     official_description: input.officialDescription.trim(),
     product_image_path: imagePath,
@@ -57,6 +59,7 @@ export async function updateResearchDraft(id: string, input: ResearchDraftInput,
     platform: input.platform,
     price: input.price,
     commission_amount: input.commissionAmount,
+    creator_count: input.creatorCount,
     product_url: input.productUrl.trim(),
     official_description: input.officialDescription.trim(),
     product_image_path: imagePath,

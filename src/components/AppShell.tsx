@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpenText, ChevronRight, LayoutDashboard, LogOut, Menu, Plus, Search, Settings, Sparkles, X } from 'lucide-react'
+import { Bookmark, BookOpenText, ChevronRight, LayoutDashboard, LogOut, Menu, Plus, Search, Settings, Sparkles, X } from 'lucide-react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { BrandMark } from './BrandMark'
@@ -7,11 +7,12 @@ import { BrandMark } from './BrandMark'
 const navigation = [
   { to: '/', label: 'Ringkasan', icon: LayoutDashboard, end: true, staffOnly: false },
   { to: '/research', label: 'Research Library', icon: BookOpenText, staffOnly: false },
+  { to: '/saved', label: 'Research Tersimpan', icon: Bookmark, staffOnly: false },
   { to: '/admin', label: 'Admin Studio', icon: Sparkles, staffOnly: true },
   { to: '/settings', label: 'Tetapan', icon: Settings, staffOnly: true },
 ]
 
-const pageNames: Record<string, string> = { '/': 'Ringkasan', '/research': 'Research Library', '/admin': 'Admin Studio', '/settings': 'Tetapan' }
+const pageNames: Record<string, string> = { '/': 'Ringkasan', '/research': 'Research Library', '/saved': 'Research Tersimpan', '/admin': 'Admin Studio', '/settings': 'Tetapan' }
 
 export function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false)

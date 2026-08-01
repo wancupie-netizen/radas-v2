@@ -7,6 +7,7 @@ import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
 import { ResearchDetailPage } from './pages/ResearchDetailPage'
 import { ResearchLibraryPage } from './pages/ResearchLibraryPage'
+import { SavedResearchPage } from './pages/SavedResearchPage'
 import { SettingsPage } from './pages/SettingsPage'
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
       <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
         <Route index element={<DashboardPage />} />
         <Route path="research" element={<ResearchLibraryPage />} />
+        <Route path="saved" element={<SavedResearchPage />} />
         <Route path="research/:researchId" element={<ResearchDetailPage />} />
         <Route path="admin" element={<AdminRoute><AdminStudioPage /></AdminRoute>} />
         <Route path="admin/research/:researchId/review" element={<AdminRoute><AIReviewPage /></AdminRoute>} />

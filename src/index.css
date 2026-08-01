@@ -609,3 +609,8 @@ button,input,select,textarea{font:inherit}
 .login-story .official-brand-logo{width:170px}
 .login-mobile-brand .official-brand-logo{width:150px}
 @media(max-width:820px){.official-brand-logo{width:138px}.sidebar-head{min-height:68px}}
+
+/* RADAS PC-010B PRODUCT INTELLIGENCE UI */
+.card-context{margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;color:#40586c;font-size:12px}.card-context>span{display:flex;align-items:center;gap:6px}.card-context svg{width:15px}.detail-actions{display:flex;align-items:stretch;flex-direction:column;gap:8px}.detail-actions .button{white-space:nowrap}.watchlist-button{color:#173552;background:#fff;border-color:#cfdde8}.watchlist-button:hover{background:#f2f7fb}.watchlist-button.saved{color:#087269;background:#e5f8f4;border-color:#8bd5ca}.detail-actions small{max-width:190px;color:#9b2438;font-size:11px;line-height:1.4}.detail-stats{grid-template-columns:repeat(4,1fr)}.detail-stats strong{display:flex;align-items:center;gap:6px}.detail-stats strong svg{width:16px;color:#168f82}
+@media(max-width:1000px){.detail-stats{grid-template-columns:repeat(2,1fr)}.detail-stats div:nth-child(3){border-left:0;border-top:1px solid #e2e9f0}.detail-stats div:nth-child(4){border-top:1px solid #e2e9f0}}
+@media(max-width:650px){.detail-stats{grid-template-columns:1fr}.detail-stats div+div,.detail-stats div:nth-child(3){border-left:0;border-top:1px solid #e2e9f0}.detail-actions{width:100%}.card-context{align-items:flex-start;flex-direction:column}}
