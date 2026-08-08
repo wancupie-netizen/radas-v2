@@ -5,6 +5,7 @@ import { AdminStudioPage } from './pages/AdminStudioPage'
 import { AIReviewPage } from './pages/AIReviewPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
+import { ProfilePage } from './pages/ProfilePage'
 import { RegisterPage } from './pages/RegisterPage'
 import { ResearchDetailPage } from './pages/ResearchDetailPage'
 import { ResearchLibraryPage } from './pages/ResearchLibraryPage'
@@ -20,6 +21,7 @@ export default function App() {
         <Route index element={<DashboardPage />} />
         <Route path="research" element={<ResearchLibraryPage />} />
         <Route path="saved" element={<SavedResearchPage />} />
+        <Route path="profile" element={<ProfilePage />} />
         <Route path="research/:researchId" element={<ResearchDetailPage />} />
         <Route path="admin" element={<AdminRoute><AdminStudioPage /></AdminRoute>} />
         <Route path="admin/research/:researchId/review" element={<AdminRoute><AIReviewPage /></AdminRoute>} />

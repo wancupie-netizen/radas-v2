@@ -38,6 +38,7 @@ export function DashboardPage() {
   const latest = summary.published.slice(0, 3)
   const suitableRate = summary.published.length === 0 ? 0 : Math.round((summary.suitable.length / summary.published.length) * 100)
   const firstName = profile?.full_name?.trim() || 'Admin'
+  const isStaff = profile?.role === 'admin' || profile?.role === 'editor'
   const focusTitle = summary.pending.length > 0
     ? `${summary.pending.length} research menunggu semakan`
     : summary.drafts.length > 0
@@ -56,7 +57,7 @@ export function DashboardPage() {
     <>
       <section className="page-heading heading-row">
         <div><span className="eyebrow">Research Operating System</span><h1>Selamat kembali, {firstName}.</h1><p>Tumpukan perhatian pada research yang membantu affiliate membuat keputusan.</p></div>
-        <Link className="button button-primary" to="/admin"><Sparkles size={17} /> Research baharu</Link>
+        {isStaff ? <Link className="button button-primary" to="/admin"><Sparkles size={17} /> Research baharu</Link> : null}
       </section>
 
       <section className="metric-grid" aria-label="Ringkasan workspace">
@@ -65,11 +66,11 @@ export function DashboardPage() {
         <article className="metric-card"><span className="metric-icon amber"><Clock3 size={20} /></span><div><span>Menunggu semakan</span><strong>{summary.pending.length}</strong><small>{summary.drafts.length} draf belum dijana</small></div></article>
       </section>
 
-      <section className="insight-banner">
+      {isStaff ? <section className="insight-banner">
         <div className="insight-icon"><Sparkles size={22} /></div>
         <div><span className="eyebrow">Fokus hari ini</span><h2>{focusTitle}</h2><p>{focusCopy}</p></div>
         <Link className="button button-secondary" to="/admin">Buka Admin Studio <ArrowRight size={16} /></Link>
-      </section>
+      </section> : null}
 
       <section className="section-block">
         <div className="section-heading"><div><span className="eyebrow">Research terkini</span><h2>Research yang telah diterbitkan</h2></div><Link to="/research">Lihat semua <ArrowRight size={16} /></Link></div>

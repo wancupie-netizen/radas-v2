@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Bookmark, BookOpenText, ChevronRight, LayoutDashboard, LogOut, Menu, Plus, Search, Settings, Sparkles, X } from 'lucide-react'
+import { Bookmark, BookOpenText, ChevronRight, LayoutDashboard, LogOut, Menu, Plus, Search, Settings, Sparkles, UserRound, X } from 'lucide-react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { BrandMark } from './BrandMark'
@@ -8,11 +8,12 @@ const navigation = [
   { to: '/', label: 'Ringkasan', icon: LayoutDashboard, end: true, staffOnly: false },
   { to: '/research', label: 'Research Library', icon: BookOpenText, staffOnly: false },
   { to: '/saved', label: 'Research Tersimpan', icon: Bookmark, staffOnly: false },
+  { to: '/profile', label: 'Profil Saya', icon: UserRound, staffOnly: false },
   { to: '/admin', label: 'Admin Studio', icon: Sparkles, staffOnly: true },
   { to: '/settings', label: 'Tetapan', icon: Settings, staffOnly: true },
 ]
 
-const pageNames: Record<string, string> = { '/': 'Ringkasan', '/research': 'Research Library', '/saved': 'Research Tersimpan', '/admin': 'Admin Studio', '/settings': 'Tetapan' }
+const pageNames: Record<string, string> = { '/': 'Ringkasan', '/research': 'Research Library', '/saved': 'Research Tersimpan', '/profile': 'Profil Saya', '/admin': 'Admin Studio', '/settings': 'Tetapan' }
 
 export function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -46,7 +47,7 @@ export function AppShell() {
         <div className="sidebar-note"><span className="eyebrow"><Sparkles size={13} /> Prinsip RADAS</span><strong>Pilih dengan yakin.</strong><p>Research yang distruktur untuk membantu affiliate membuat keputusan dan bertindak.</p></div>
         <div className="user-card">
           <div className="avatar">{initials}</div>
-          <div><strong>{displayName}</strong><span>{profile?.role ?? 'Memuatkan profil'}</span></div>
+          <NavLink className="user-card-profile" to="/profile" onClick={() => setMobileOpen(false)}><strong>{displayName}</strong><span>{profile?.role ?? 'Memuatkan profil'}</span></NavLink>
           <button className="icon-button" disabled={signingOut} onClick={() => void handleSignOut()} aria-label="Log keluar"><LogOut size={17} /></button>
         </div>
       </aside>
