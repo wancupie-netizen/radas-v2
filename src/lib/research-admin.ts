@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { ResearchAccess, ResearchRow } from '../types/database'
+import type { ReferenceVideo, ResearchAccess, ResearchRow } from '../types/database'
 
 export interface ResearchDraftInput {
   productName: string
@@ -10,6 +10,7 @@ export interface ResearchDraftInput {
   creatorCount: number | null
   productUrl: string
   officialDescription: string
+  referenceVideos: ReferenceVideo[]
   accessLevel: ResearchAccess
 }
 
@@ -42,6 +43,7 @@ export async function createResearchDraft(input: ResearchDraftInput, authorId: s
     creator_count: input.creatorCount,
     product_url: input.productUrl.trim(),
     official_description: input.officialDescription.trim(),
+    reference_videos: input.referenceVideos,
     product_image_path: imagePath,
     access_level: input.accessLevel,
     author_id: authorId,
@@ -62,6 +64,7 @@ export async function updateResearchDraft(id: string, input: ResearchDraftInput,
     creator_count: input.creatorCount,
     product_url: input.productUrl.trim(),
     official_description: input.officialDescription.trim(),
+    reference_videos: input.referenceVideos,
     product_image_path: imagePath,
     access_level: input.accessLevel,
   }).eq('id', id).select('*').single()
