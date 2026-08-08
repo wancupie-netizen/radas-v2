@@ -101,7 +101,7 @@ export function RegisterPage() {
               {submitting ? null : <ArrowRight size={18} />}
             </button>
             <p className="auth-switch">Sudah mempunyai akaun? <Link to="/login">Log masuk</Link></p>
-            <small>Akaun baharu diberikan akses Subscriber pelan Free secara automatik.</small>
+            <small>Akaun baharu diberikan akses Subscriber pelan Starter secara automatik.</small>
           </form>
         )}
       </section>
