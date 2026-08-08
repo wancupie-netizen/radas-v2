@@ -7,7 +7,7 @@ import { updateOwnPassword, updateOwnProfile } from '../lib/profile'
 type Message = { type: 'success' | 'error'; text: string }
 
 const roleLabels = { admin: 'Admin', editor: 'Editor', subscriber: 'Subscriber' }
-const planLabels = { free: 'Free', pro: 'Pro' }
+const planLabels = { free: 'Starter', pro: 'Pro' }
 
 export function ProfilePage() {
   const { profile, user, refreshProfile } = useAuth()
