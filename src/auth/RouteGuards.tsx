@@ -26,3 +26,10 @@ export function AdminRoute({ children }: { children: ReactNode }) {
   if (profile?.role !== 'admin' && profile?.role !== 'editor') return <Navigate replace to="/" />
   return children
 }
+
+export function AdminOnlyRoute({ children }: { children: ReactNode }) {
+  const { profile, loading, profileError } = useAuth()
+  if (loading) return <AuthLoading />
+  if (profileError || profile?.role !== 'admin') return <Navigate replace to="/" />
+  return children
+}

@@ -1,7 +1,9 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { AdminRoute, ProtectedRoute } from './auth/RouteGuards'
+import { AdminOnlyRoute, AdminRoute, ProtectedRoute } from './auth/RouteGuards'
 import { AppShell } from './components/AppShell'
 import { AdminStudioPage } from './pages/AdminStudioPage'
+import { AdminAnnouncementsPage } from './pages/AdminAnnouncementsPage'
+import { AnnouncementsPage } from './pages/AnnouncementsPage'
 import { AIReviewPage } from './pages/AIReviewPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
@@ -22,9 +24,11 @@ export default function App() {
         <Route path="research" element={<ResearchLibraryPage />} />
         <Route path="saved" element={<SavedResearchPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="announcements" element={<AnnouncementsPage />} />
         <Route path="research/:researchId" element={<ResearchDetailPage />} />
         <Route path="admin" element={<AdminRoute><AdminStudioPage /></AdminRoute>} />
         <Route path="admin/research/:researchId/review" element={<AdminRoute><AIReviewPage /></AdminRoute>} />
+        <Route path="admin/announcements" element={<AdminOnlyRoute><AdminAnnouncementsPage /></AdminOnlyRoute>} />
         <Route path="settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
       </Route>
       <Route path="*" element={<Navigate replace to="/" />} />

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { LiveResearchCard } from '../components/LiveResearchCard'
+import { AnnouncementBanner } from '../components/AnnouncementBanner'
 import { listAdminResearch } from '../lib/research-admin'
 import { getAdminUserStats } from '../lib/user-stats'
 import type { AdminUserStats } from '../lib/user-stats'
@@ -72,6 +73,8 @@ export function DashboardPage() {
       <section className="page-heading heading-row">
         <div><span className="eyebrow">Research Operating System</span><h1>Selamat kembali, {firstName}.</h1><p>Tumpukan perhatian pada research yang membantu affiliate membuat keputusan.</p></div>
       </section>
+
+      <AnnouncementBanner />
 
       <section className="metric-grid" aria-label="Ringkasan workspace">
         <article className="metric-card"><span className="metric-icon teal"><BookOpenText size={20} /></span><div><span>Research diterbitkan</span><strong>{summary.published.length}</strong><small>{summary.publishedThisMonth.length} diterbitkan bulan ini</small></div></article>
