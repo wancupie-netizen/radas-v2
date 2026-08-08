@@ -47,7 +47,7 @@ export async function getLatestPinnedAnnouncement() {
 }
 
 export async function listAdminAnnouncements() {
-  const { data, error } = await requireSupabase().from('announcements').select('*').order('created_at', { ascending: false })
+  const { data, error } = await requireSupabase().from('announcements').select('*').is('recipient_user_id', null).order('created_at', { ascending: false })
   if (error) throw error
   return data as AnnouncementRow[]
 }

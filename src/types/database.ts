@@ -96,6 +96,7 @@ export interface AnnouncementRow {
   status: AnnouncementStatus
   published_at: string | null
   expires_at: string | null
+  recipient_user_id: string | null
   created_by: string
   created_at: string
   updated_at: string
