@@ -1,7 +1,7 @@
 import { AlertCircle, ArrowRight, Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { BrandMark } from '../components/BrandMark'
 
@@ -49,7 +49,7 @@ export function LoginPage() {
           <div className="login-mobile-brand"><BrandMark /></div>
           <span className="eyebrow">Selamat kembali</span>
           <h2>Log masuk ke RADAS</h2>
-          <p>Gunakan akaun yang telah didaftarkan oleh pentadbir.</p>
+          <p>Gunakan email dan kata laluan akaun RADAS anda.</p>
 
           {error ? <div className="login-error" role="alert"><AlertCircle size={18} /><span>{error}</span></div> : null}
 
@@ -66,6 +66,7 @@ export function LoginPage() {
             {submitting ? 'Sedang masuk...' : 'Log masuk'}
             {submitting ? null : <ArrowRight size={18} />}
           </button>
+          <p className="auth-switch">Belum mempunyai akaun? <Link to="/register">Daftar sekarang</Link></p>
           <small>Akses RADAS dilindungi dan aktiviti akaun tertakluk kepada peranan pengguna.</small>
         </form>
       </section>

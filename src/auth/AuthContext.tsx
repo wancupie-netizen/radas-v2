@@ -11,6 +11,7 @@ interface AuthContextValue {
   loading: boolean
   profileError: string | null
   signIn: (email: string, password: string) => Promise<void>
+  signUp: (fullName: string, email: string, password: string) => Promise<{ requiresEmailConfirmation: boolean }>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
 }
@@ -85,6 +86,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error
   }, [])
 
+  const signUp = useCallback(async (fullName: string, email: string, password: string) => {
+    if (!supabase) throw new Error('Supabase belum dikonfigurasi. Semak fail .env.local.')
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: `${window.location.origin}/`,
+      },
+    })
+    if (error) throw error
+    return { requiresEmailConfirmation: !data.session }
+  }, [])
+
   const signOut = useCallback(async () => {
     if (!supabase) return
     const { error } = await supabase.auth.signOut()
@@ -102,9 +117,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     profileError,
     signIn,
+    signUp,
     signOut,
     refreshProfile,
-  }), [session, profile, loading, profileError, signIn, signOut, refreshProfile])
+  }), [session, profile, loading, profileError, signIn, signUp, signOut, refreshProfile])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
