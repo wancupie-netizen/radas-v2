@@ -1,4 +1,4 @@
-import { AlertCircle, Archive, BrainCircuit, CheckCircle2, Edit3, Eye, ImagePlus, Link2, LoaderCircle, Plus, Save, Sparkles, Trash2, X } from 'lucide-react'
+import { AlertCircle, Archive, BrainCircuit, CalendarDays, CheckCircle2, Edit3, Eye, ImagePlus, Link2, LoaderCircle, Plus, Save, Sparkles, Trash2, Video, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -6,7 +6,7 @@ import { useAuth } from '../auth/AuthContext'
 import { generateResearch } from '../lib/research-ai'
 import { archiveResearch } from '../lib/research-publish'
 import { createResearchDraft, deleteResearchDraft, getProductImageUrl, listAdminResearch, removeProductImage, updateResearchDraft, uploadProductImage } from '../lib/research-admin'
-import type { ResearchAccess, ResearchRow } from '../types/database'
+import type { ReferenceVideo, ResearchAccess, ResearchRow } from '../types/database'
 
 interface DraftForm {
   productName: string
@@ -17,10 +17,12 @@ interface DraftForm {
   creatorCount: string
   productUrl: string
   officialDescription: string
+  referenceVideos: ReferenceVideo[]
   accessLevel: ResearchAccess
 }
 
-const emptyForm: DraftForm = { productName: '', category: '', platform: '', price: '', commission: '', creatorCount: '', productUrl: '', officialDescription: '', accessLevel: 'free' }
+const emptyReferenceVideo = (): ReferenceVideo => ({ url: '', checked_at: new Date().toISOString().slice(0, 10) })
+const emptyForm = (): DraftForm => ({ productName: '', category: '', platform: '', price: '', commission: '', creatorCount: '', productUrl: '', officialDescription: '', referenceVideos: [emptyReferenceVideo()], accessLevel: 'free' })
 const allowedImageTypes = new Set(['image/jpeg', 'image/png', 'image/webp'])
 const draftStorageKey = 'radas:admin-research-form:v1'
 const editStorageKeyPrefix = 'radas:admin-research-edit:v2:' // RADAS PC-008A2
@@ -29,7 +31,7 @@ const activeEditStorageKey = 'radas:admin-research-active-edit:v2'
 function readSavedDraft(): DraftForm {
   try {
     const saved = window.localStorage.getItem(draftStorageKey)
-    if (!saved) return emptyForm
+    if (!saved) return emptyForm()
     const parsed = JSON.parse(saved) as Partial<DraftForm>
     return {
       productName: typeof parsed.productName === 'string' ? parsed.productName : '',
@@ -40,10 +42,13 @@ function readSavedDraft(): DraftForm {
       creatorCount: typeof parsed.creatorCount === 'string' ? parsed.creatorCount : '',
       productUrl: typeof parsed.productUrl === 'string' ? parsed.productUrl : '',
       officialDescription: typeof parsed.officialDescription === 'string' ? parsed.officialDescription : '',
+      referenceVideos: Array.isArray(parsed.referenceVideos)
+        ? parsed.referenceVideos.slice(0, 3).map((video) => ({ url: typeof video.url === 'string' ? video.url : '', checked_at: typeof video.checked_at === 'string' ? video.checked_at : '' }))
+        : [emptyReferenceVideo()],
       accessLevel: parsed.accessLevel === 'pro' ? 'pro' : 'free',
     }
   } catch {
-    return emptyForm
+    return emptyForm()
   }
 }
 
@@ -99,15 +104,19 @@ export function AdminStudioPage() {
     setForm((current) => ({ ...current, [key]: value }))
   }
 
+  function updateReferenceVideo(index: number, key: keyof ReferenceVideo, value: string) {
+    updateField('referenceVideos', form.referenceVideos.map((video, position) => position === index ? { ...video, [key]: value } : video))
+  }
+
   function resetForm() {
     if (editing) window.localStorage.removeItem(`${editStorageKeyPrefix}${editing.id}`)
     else window.localStorage.removeItem(draftStorageKey)
     window.localStorage.removeItem(activeEditStorageKey)
-    setForm(emptyForm); setEditing(null); setImageFile(null); setPreviewUrl(null); setMessage(null)
+    setForm(emptyForm()); setEditing(null); setImageFile(null); setPreviewUrl(null); setMessage(null)
   }
 
   function startEdit(item: ResearchRow) {
-    const databaseForm: DraftForm = { productName: item.product_name, category: item.category, platform: item.platform, price: String(item.price), commission: item.commission_amount === null ? '' : String(item.commission_amount), creatorCount: item.creator_count === null ? '' : String(item.creator_count), productUrl: item.product_url, officialDescription: item.official_description, accessLevel: item.access_level }
+    const databaseForm: DraftForm = { productName: item.product_name, category: item.category, platform: item.platform, price: String(item.price), commission: item.commission_amount === null ? '' : String(item.commission_amount), creatorCount: item.creator_count === null ? '' : String(item.creator_count), productUrl: item.product_url, officialDescription: item.official_description, referenceVideos: item.reference_videos.length > 0 ? item.reference_videos.slice(0, 3) : [emptyReferenceVideo()], accessLevel: item.access_level }
     let nextForm = databaseForm
     try {
       const saved = window.localStorage.getItem(`${editStorageKeyPrefix}${item.id}`)
@@ -134,7 +143,7 @@ export function AdminStudioPage() {
     let uploadedPath: string | null = null
     try {
       if (imageFile) uploadedPath = await uploadProductImage(imageFile, user.id)
-      const input = { productName: form.productName, category: form.category, platform: form.platform, price: Number(form.price), commissionAmount: form.commission ? Number(form.commission) : null, creatorCount: form.creatorCount ? Number(form.creatorCount) : null, productUrl: form.productUrl, officialDescription: form.officialDescription, accessLevel: form.accessLevel }
+      const input = { productName: form.productName, category: form.category, platform: form.platform, price: Number(form.price), commissionAmount: form.commission ? Number(form.commission) : null, creatorCount: form.creatorCount ? Number(form.creatorCount) : null, productUrl: form.productUrl, officialDescription: form.officialDescription, referenceVideos: form.referenceVideos.filter((video) => video.url.trim()).map((video) => ({ url: video.url.trim(), checked_at: video.checked_at })), accessLevel: form.accessLevel }
       if (editing) {
         const oldPath = editing.product_image_path
         await updateResearchDraft(editing.id, input, uploadedPath ?? oldPath)
@@ -146,7 +155,7 @@ export function AdminStudioPage() {
         await createResearchDraft(input, user.id, uploadedPath)
         setMessage({ type: 'success', text: 'Draf research berjaya disimpan.' })
       }
-      setForm(emptyForm); setEditing(null); setImageFile(null); setPreviewUrl(null); window.localStorage.removeItem(draftStorageKey)
+      setForm(emptyForm()); setEditing(null); setImageFile(null); setPreviewUrl(null); window.localStorage.removeItem(draftStorageKey)
       await loadResearch()
     } catch (error) {
       if (uploadedPath) await removeProductImage(uploadedPath).catch(() => undefined)
@@ -199,6 +208,7 @@ export function AdminStudioPage() {
             <label className="field"><span>Jumlah creator (anggaran)</span><input min="0" step="1" type="number" value={form.creatorCount} onChange={(event) => updateField('creatorCount', event.target.value)} placeholder="Contoh: 4100" /><small>Kemas kini berdasarkan semakan platform.</small></label>
             <label className="field field-wide"><span>Pautan produk</span><div className="input-icon"><Link2 /><input required type="url" value={form.productUrl} onChange={(event) => updateField('productUrl', event.target.value)} placeholder="https://..." /></div></label>
             <label className="field field-wide"><span>Deskripsi rasmi</span><textarea required rows={7} value={form.officialDescription} onChange={(event) => updateField('officialDescription', event.target.value)} placeholder="Tampal deskripsi rasmi daripada penjual atau platform..." /><small>Gunakan fakta daripada halaman rasmi produk.</small></label>
+            <div className="field field-wide video-reference-field"><div className="video-reference-head"><div><span>Video rujukan</span><small>Tambah sehingga 3 pautan TikTok, YouTube atau platform lain.</small></div>{form.referenceVideos.length < 3 ? <button className="button button-secondary" type="button" onClick={() => updateField('referenceVideos', [...form.referenceVideos, emptyReferenceVideo()])}><Plus /> Tambah video</button> : null}</div><div className="video-reference-list">{form.referenceVideos.map((video, index) => <div className="video-reference-row" key={index}><label><span>Link video {index + 1}</span><div className="input-icon"><Video /><input type="url" value={video.url} onChange={(event) => updateReferenceVideo(index, 'url', event.target.value)} placeholder="https://www.tiktok.com/@creator/video/..." /></div></label><label><span>Tarikh semakan</span><div className="input-icon"><CalendarDays /><input required={Boolean(video.url)} type="date" value={video.checked_at} onChange={(event) => updateReferenceVideo(index, 'checked_at', event.target.value)} /></div></label>{form.referenceVideos.length > 1 ? <button className="icon-button danger" type="button" onClick={() => updateField('referenceVideos', form.referenceVideos.filter((_, position) => position !== index))} aria-label={`Buang video ${index + 1}`}><Trash2 /></button> : null}</div>)}</div></div>
             <label className="field"><span>Akses research</span><select value={form.accessLevel} onChange={(event) => updateField('accessLevel', event.target.value as ResearchAccess)}><option value="free">Free</option><option value="pro">Pro</option></select></label>
             <label className="field"><span>Imej produk</span><span className="file-input"><ImagePlus />{imageFile ? imageFile.name : editing?.product_image_path ? 'Tukar imej' : 'Pilih imej'}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={selectImage} /></span><small>JPEG, PNG atau WebP. Maksimum 5 MB.</small></label>
           </div>

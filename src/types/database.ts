@@ -16,6 +16,11 @@ export interface ProfileRow {
   updated_at: string
 }
 
+export interface ReferenceVideo {
+  url: string
+  checked_at: string
+}
+
 export interface ResearchRow {
   id: string
   slug: string
@@ -37,7 +42,7 @@ export interface ResearchRow {
   execution_playbook: Record<string, unknown>[]
   suitable_for: string[]
   content_angles: Record<string, unknown>[]
-  reference_videos: Record<string, unknown>[]
+  reference_videos: ReferenceVideo[]
   video_ideas: Record<string, unknown>[]
   integrity_status: ResearchIntegrity
   last_verified_at: string | null

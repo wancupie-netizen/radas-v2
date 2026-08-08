@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowUpRight, Bookmark, BookmarkCheck, CheckCircle2, Lightbulb, LoaderCircle, PlayCircle, ShieldCheck, Target, Users } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, Bookmark, BookmarkCheck, CheckCircle2, ExternalLink, Lightbulb, LoaderCircle, Play, PlayCircle, ShieldCheck, Target, Users, Video } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
@@ -11,6 +11,17 @@ import type { ResearchRow } from '../types/database'
 const verdictLabels = { layak_diuji: 'Layak Diuji', perlu_dipantau: 'Perlu Dipantau', tidak_disyorkan: 'Tidak Disyorkan' }
 const integrityLabels = { reviewed: 'Disemak RADAS', limited_information: 'Maklumat Terhad', update_required: 'Perlu Dikemas Kini' }
 
+function getVideoEmbed(url: string) {
+  try {
+    const parsed = new URL(url)
+    const tiktokId = parsed.pathname.match(/\/video\/(\d+)/)?.[1]
+    if ((parsed.hostname === 'tiktok.com' || parsed.hostname.endsWith('.tiktok.com')) && tiktokId) return { platform: 'TikTok', src: `https://www.tiktok.com/player/v1/${tiktokId}`, portrait: true }
+    const youtubeId = parsed.hostname === 'youtu.be' ? parsed.pathname.slice(1).split('/')[0] : parsed.hostname.endsWith('youtube.com') ? parsed.searchParams.get('v') ?? parsed.pathname.match(/\/(?:shorts|embed)\/([^/?]+)/)?.[1] : null
+    if (youtubeId && /^[a-zA-Z0-9_-]{6,20}$/.test(youtubeId)) return { platform: 'YouTube', src: `https://www.youtube.com/embed/${youtubeId}`, portrait: parsed.pathname.includes('/shorts/') }
+    return { platform: parsed.hostname.replace(/^www\./, ''), src: null, portrait: false }
+  } catch { return { platform: 'Video', src: null, portrait: false } }
+}
+
 export function ResearchDetailPage() {
   const { researchId } = useParams()
   const { user } = useAuth()
@@ -19,6 +30,7 @@ export function ResearchDetailPage() {
   const [saved, setSaved] = useState(false)
   const [savingWatchlist, setSavingWatchlist] = useState(false)
   const [watchlistError, setWatchlistError] = useState<string | null>(null)
+  const [activeVideo, setActiveVideo] = useState<number | null>(null)
 
   useEffect(() => {
     let active = true
@@ -64,6 +76,7 @@ export function ResearchDetailPage() {
         <main className="published-main">
           <article className="content-panel"><span className="panel-icon"><Target /></span><div><span className="eyebrow">RADAS Verdict</span><h2>{item.verdict ? verdictLabels[item.verdict] : 'Belum dinilai'}</h2><p>{item.verdict_reason}</p></div></article>
           <article className="content-panel"><span className="panel-icon blue"><Lightbulb /></span><div><span className="eyebrow">Research Insight</span><h2>Kenapa produk ini perlu diperhatikan</h2><p>{item.research_insight}</p></div></article>
+          {item.reference_videos.length > 0 ? <section className="reference-video-section"><div className="playbook-heading"><span className="eyebrow">Video Rujukan</span><h2>Contoh content untuk dikaji</h2><p>Gunakan video ini untuk memahami hook, visual dan gaya penyampaian.</p></div><div className="reference-video-grid">{item.reference_videos.map((video, index) => { const embed = getVideoEmbed(video.url); const checkedDate = video.checked_at ? new Intl.DateTimeFormat('ms-MY', { dateStyle: 'medium' }).format(new Date(`${video.checked_at}T00:00:00`)) : 'Belum direkod'; return <article className={`reference-video-card ${embed.portrait ? 'portrait' : ''}`} key={`${video.url}-${index}`}><div className="reference-video-player">{activeVideo === index && embed.src ? <iframe allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin" src={embed.src} title={`Video rujukan ${index + 1}`} /> : <button type="button" onClick={() => embed.src ? setActiveVideo(index) : window.open(video.url, '_blank', 'noopener,noreferrer')}><span><Play /></span><strong>{embed.src ? 'Tonton video' : 'Buka video'}</strong></button>}</div><div className="reference-video-meta"><span><Video /> {embed.platform}</span><small>Disemak {checkedDate}</small><a href={video.url} target="_blank" rel="noreferrer">Buka sumber <ExternalLink /></a></div></article> })}</div></section> : null}
           <section className="affiliate-playbook"><div className="playbook-heading"><span className="eyebrow">Affiliate Playbook</span><h2>Daripada research kepada tindakan</h2><p>Panduan praktikal yang telah disemak oleh RADAS.</p></div><article className="playbook-feature"><Target /><div><span>Product Pain</span><p>{item.product_pain}</p></div></article><article className="playbook-feature"><CheckCircle2 /><div><span>Suitable For</span><div className="tag-list">{item.suitable_for.map((value) => <span key={value}>{value}</span>)}</div></div></article><div className="published-angle-grid">{angles.map((angle, index) => <article key={`${angle.title}-${index}`}><span>Content Angle {index + 1}</span><h3>{angle.title}</h3><strong>{angle.hook}</strong><p>{angle.rationale}</p></article>)}</div><div className="published-steps"><h3><PlayCircle /> Execution Playbook</h3>{playbook.map((step, index) => <article key={`${step.step}-${index}`}><b>{String(index + 1).padStart(2, '0')}</b><div><h4>{step.step}</h4><p>{step.action}</p><small>{step.notes}</small></div></article>)}</div></section>
         </main>
         <aside className="integrity-panel"><ShieldCheck /><span className="eyebrow">Research Integrity</span><h3>{integrityLabels[item.integrity_status]}</h3><dl><div><dt>Last verified</dt><dd>{verifiedDate}</dd></div><div><dt>Verified by</dt><dd>RADAS Editorial</dd></div><div><dt>Access</dt><dd>{item.access_level.toUpperCase()}</dd></div></dl><p>Harga, komisen dan jumlah creator boleh berubah. Semak platform sebelum menghasilkan content.</p></aside>
