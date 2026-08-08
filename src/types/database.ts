@@ -5,6 +5,9 @@ export type ResearchAccess = 'free' | 'pro'
 export type ResearchVerdict = 'layak_diuji' | 'perlu_dipantau' | 'tidak_disyorkan'
 export type ResearchIntegrity = 'reviewed' | 'limited_information' | 'update_required'
 export type GenerationStatus = 'queued' | 'running' | 'completed' | 'failed'
+export type AnnouncementType = 'info' | 'update' | 'important'
+export type AnnouncementAudience = 'all' | 'starter' | 'pro'
+export type AnnouncementStatus = 'draft' | 'published'
 
 export interface ProfileRow {
   id: string
@@ -79,4 +82,25 @@ export interface WatchlistRow {
   user_id: string
   research_id: string
   created_at: string
+}
+
+export interface AnnouncementRow {
+  id: string
+  title: string
+  body: string
+  type: AnnouncementType
+  audience: AnnouncementAudience
+  action_label: string | null
+  action_url: string | null
+  is_pinned: boolean
+  status: AnnouncementStatus
+  published_at: string | null
+  expires_at: string | null
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
+export interface AnnouncementFeedItem extends AnnouncementRow {
+  is_read: boolean
 }
