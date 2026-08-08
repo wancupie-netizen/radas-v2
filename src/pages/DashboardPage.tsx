@@ -71,7 +71,6 @@ export function DashboardPage() {
     <>
       <section className="page-heading heading-row">
         <div><span className="eyebrow">Research Operating System</span><h1>Selamat kembali, {firstName}.</h1><p>Tumpukan perhatian pada research yang membantu affiliate membuat keputusan.</p></div>
-        {isStaff ? <Link className="button button-primary" to="/admin"><Sparkles size={17} /> Research baharu</Link> : null}
       </section>
 
       <section className="metric-grid" aria-label="Ringkasan workspace">
