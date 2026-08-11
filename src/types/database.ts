@@ -4,6 +4,7 @@ export type ResearchStatus = 'draft' | 'ai_generated' | 'in_review' | 'published
 export type ResearchAccess = 'free' | 'pro'
 export type ResearchVerdict = 'layak_diuji' | 'perlu_dipantau' | 'tidak_disyorkan'
 export type ResearchIntegrity = 'reviewed' | 'limited_information' | 'update_required'
+export type GmvMaxStatus = 'confirmed_active' | 'indicated' | 'unknown' | 'inactive'
 export type GenerationStatus = 'queued' | 'running' | 'completed' | 'failed'
 export type AnnouncementType = 'info' | 'update' | 'important'
 export type AnnouncementAudience = 'all' | 'starter' | 'pro'
@@ -34,6 +35,7 @@ export interface ResearchRow {
   commission_amount: number | null
   commission_rate: number | null
   creator_count: number | null
+  gmv_max_status: GmvMaxStatus
   product_url: string
   official_description: string
   product_image_path: string | null

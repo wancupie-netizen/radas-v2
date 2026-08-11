@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { ReferenceVideo, ResearchAccess, ResearchRow } from '../types/database'
+import type { GmvMaxStatus, ReferenceVideo, ResearchAccess, ResearchRow } from '../types/database'
 
 export interface ResearchDraftInput {
   productName: string
@@ -8,6 +8,7 @@ export interface ResearchDraftInput {
   price: number
   commissionAmount: number | null
   creatorCount: number | null
+  gmvMaxStatus: GmvMaxStatus
   productUrl: string
   officialDescription: string
   referenceVideos: ReferenceVideo[]
@@ -41,6 +42,7 @@ export async function createResearchDraft(input: ResearchDraftInput, authorId: s
     price: input.price,
     commission_amount: input.commissionAmount,
     creator_count: input.creatorCount,
+    gmv_max_status: input.gmvMaxStatus,
     product_url: input.productUrl.trim(),
     official_description: input.officialDescription.trim(),
     reference_videos: input.referenceVideos,
@@ -62,6 +64,7 @@ export async function updateResearchDraft(id: string, input: ResearchDraftInput,
     price: input.price,
     commission_amount: input.commissionAmount,
     creator_count: input.creatorCount,
+    gmv_max_status: input.gmvMaxStatus,
     product_url: input.productUrl.trim(),
     official_description: input.officialDescription.trim(),
     reference_videos: input.referenceVideos,

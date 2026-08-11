@@ -6,7 +6,7 @@ import { useAuth } from '../auth/AuthContext'
 import { generateResearch } from '../lib/research-ai'
 import { archiveResearch } from '../lib/research-publish'
 import { createResearchDraft, deleteResearchDraft, getProductImageUrl, listAdminResearch, removeProductImage, updateResearchDraft, uploadProductImage } from '../lib/research-admin'
-import type { ReferenceVideo, ResearchAccess, ResearchRow } from '../types/database'
+import type { GmvMaxStatus, ReferenceVideo, ResearchAccess, ResearchRow } from '../types/database'
 
 interface DraftForm {
   productName: string
@@ -15,6 +15,7 @@ interface DraftForm {
   price: string
   commission: string
   creatorCount: string
+  gmvMaxStatus: GmvMaxStatus
   productUrl: string
   officialDescription: string
   referenceVideos: ReferenceVideo[]
@@ -22,11 +23,15 @@ interface DraftForm {
 }
 
 const emptyReferenceVideo = (): ReferenceVideo => ({ url: '', checked_at: new Date().toISOString().slice(0, 10) })
-const emptyForm = (): DraftForm => ({ productName: '', category: '', platform: '', price: '', commission: '', creatorCount: '', productUrl: '', officialDescription: '', referenceVideos: [emptyReferenceVideo()], accessLevel: 'free' })
+const emptyForm = (): DraftForm => ({ productName: '', category: '', platform: '', price: '', commission: '', creatorCount: '', gmvMaxStatus: 'unknown', productUrl: '', officialDescription: '', referenceVideos: [emptyReferenceVideo()], accessLevel: 'free' })
 const allowedImageTypes = new Set(['image/jpeg', 'image/png', 'image/webp'])
 const draftStorageKey = 'radas:admin-research-form:v1'
 const editStorageKeyPrefix = 'radas:admin-research-edit:v2:' // RADAS PC-008A2
 const activeEditStorageKey = 'radas:admin-research-active-edit:v2'
+
+function normalizeGmvMaxStatus(value: unknown): GmvMaxStatus {
+  return value === 'confirmed_active' || value === 'indicated' || value === 'inactive' ? value : 'unknown'
+}
 
 function readSavedDraft(): DraftForm {
   try {
@@ -40,6 +45,7 @@ function readSavedDraft(): DraftForm {
       price: typeof parsed.price === 'string' ? parsed.price : '',
       commission: typeof parsed.commission === 'string' ? parsed.commission : '',
       creatorCount: typeof parsed.creatorCount === 'string' ? parsed.creatorCount : '',
+      gmvMaxStatus: normalizeGmvMaxStatus(parsed.gmvMaxStatus),
       productUrl: typeof parsed.productUrl === 'string' ? parsed.productUrl : '',
       officialDescription: typeof parsed.officialDescription === 'string' ? parsed.officialDescription : '',
       referenceVideos: Array.isArray(parsed.referenceVideos)
@@ -116,11 +122,14 @@ export function AdminStudioPage() {
   }
 
   function startEdit(item: ResearchRow) {
-    const databaseForm: DraftForm = { productName: item.product_name, category: item.category, platform: item.platform, price: String(item.price), commission: item.commission_amount === null ? '' : String(item.commission_amount), creatorCount: item.creator_count === null ? '' : String(item.creator_count), productUrl: item.product_url, officialDescription: item.official_description, referenceVideos: item.reference_videos.length > 0 ? item.reference_videos.slice(0, 3) : [emptyReferenceVideo()], accessLevel: item.access_level }
+    const databaseForm: DraftForm = { productName: item.product_name, category: item.category, platform: item.platform, price: String(item.price), commission: item.commission_amount === null ? '' : String(item.commission_amount), creatorCount: item.creator_count === null ? '' : String(item.creator_count), gmvMaxStatus: normalizeGmvMaxStatus(item.gmv_max_status), productUrl: item.product_url, officialDescription: item.official_description, referenceVideos: item.reference_videos.length > 0 ? item.reference_videos.slice(0, 3) : [emptyReferenceVideo()], accessLevel: item.access_level }
     let nextForm = databaseForm
     try {
       const saved = window.localStorage.getItem(`${editStorageKeyPrefix}${item.id}`)
-      if (saved) nextForm = { ...databaseForm, ...(JSON.parse(saved) as Partial<DraftForm>) }
+      if (saved) {
+        const parsed = JSON.parse(saved) as Partial<DraftForm>
+        nextForm = { ...databaseForm, ...parsed, gmvMaxStatus: normalizeGmvMaxStatus(parsed.gmvMaxStatus ?? databaseForm.gmvMaxStatus) }
+      }
     } catch { window.localStorage.removeItem(`${editStorageKeyPrefix}${item.id}`) }
     window.localStorage.setItem(activeEditStorageKey, item.id)
     setEditing(item); setForm(nextForm)
@@ -143,7 +152,7 @@ export function AdminStudioPage() {
     let uploadedPath: string | null = null
     try {
       if (imageFile) uploadedPath = await uploadProductImage(imageFile, user.id)
-      const input = { productName: form.productName, category: form.category, platform: form.platform, price: Number(form.price), commissionAmount: form.commission ? Number(form.commission) : null, creatorCount: form.creatorCount ? Number(form.creatorCount) : null, productUrl: form.productUrl, officialDescription: form.officialDescription, referenceVideos: form.referenceVideos.filter((video) => video.url.trim()).map((video) => ({ url: video.url.trim(), checked_at: video.checked_at })), accessLevel: form.accessLevel }
+      const input = { productName: form.productName, category: form.category, platform: form.platform, price: Number(form.price), commissionAmount: form.commission ? Number(form.commission) : null, creatorCount: form.creatorCount ? Number(form.creatorCount) : null, gmvMaxStatus: form.gmvMaxStatus, productUrl: form.productUrl, officialDescription: form.officialDescription, referenceVideos: form.referenceVideos.filter((video) => video.url.trim()).map((video) => ({ url: video.url.trim(), checked_at: video.checked_at })), accessLevel: form.accessLevel }
       if (editing) {
         const oldPath = editing.product_image_path
         await updateResearchDraft(editing.id, input, uploadedPath ?? oldPath)
@@ -206,6 +215,7 @@ export function AdminStudioPage() {
             <label className="field"><span>Harga</span><div className="input-prefix"><b>RM</b><input required min="0" step="0.01" type="number" value={form.price} onChange={(event) => updateField('price', event.target.value)} placeholder="0.00" /></div></label>
             <label className="field"><span>Anggaran komisen</span><div className="input-prefix"><b>RM</b><input min="0" step="0.01" type="number" value={form.commission} onChange={(event) => updateField('commission', event.target.value)} placeholder="0.00" /></div></label>
             <label className="field"><span>Jumlah creator (anggaran)</span><input min="0" step="1" type="number" value={form.creatorCount} onChange={(event) => updateField('creatorCount', event.target.value)} placeholder="Contoh: 4100" /><small>Kemas kini berdasarkan semakan platform.</small></label>
+            <label className="field"><span>Sokongan GMV Max Seller</span><select value={form.gmvMaxStatus} onChange={(event) => updateField('gmvMaxStatus', event.target.value as GmvMaxStatus)}><option value="confirmed_active">Disahkan Aktif</option><option value="indicated">Ada Petunjuk</option><option value="unknown">Tidak Diketahui</option><option value="inactive">Tidak Aktif</option></select></label>
             <label className="field field-wide"><span>Pautan produk</span><div className="input-icon"><Link2 /><input required type="url" value={form.productUrl} onChange={(event) => updateField('productUrl', event.target.value)} placeholder="https://..." /></div></label>
             <label className="field field-wide"><span>Deskripsi rasmi</span><textarea required rows={7} value={form.officialDescription} onChange={(event) => updateField('officialDescription', event.target.value)} placeholder="Tampal deskripsi rasmi daripada penjual atau platform..." /><small>Gunakan fakta daripada halaman rasmi produk.</small></label>
             <div className="field field-wide video-reference-field"><div className="video-reference-head"><div><span>Video rujukan</span><small>Tambah sehingga 3 pautan TikTok, YouTube atau platform lain.</small></div>{form.referenceVideos.length < 3 ? <button className="button button-secondary" type="button" onClick={() => updateField('referenceVideos', [...form.referenceVideos, emptyReferenceVideo()])}><Plus /> Tambah video</button> : null}</div><div className="video-reference-list">{form.referenceVideos.map((video, index) => <div className="video-reference-row" key={index}><label><span>Link video {index + 1}</span><div className="input-icon"><Video /><input type="url" value={video.url} onChange={(event) => updateReferenceVideo(index, 'url', event.target.value)} placeholder="https://www.tiktok.com/@creator/video/..." /></div></label><label><span>Tarikh semakan</span><div className="input-icon"><CalendarDays /><input required={Boolean(video.url)} type="date" value={video.checked_at} onChange={(event) => updateReferenceVideo(index, 'checked_at', event.target.value)} /></div></label>{form.referenceVideos.length > 1 ? <button className="icon-button danger" type="button" onClick={() => updateField('referenceVideos', form.referenceVideos.filter((_, position) => position !== index))} aria-label={`Buang video ${index + 1}`}><Trash2 /></button> : null}</div>)}</div></div>
