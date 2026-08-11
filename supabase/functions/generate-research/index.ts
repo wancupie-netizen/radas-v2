@@ -7,7 +7,7 @@ const corsHeaders = {
 }
 
 const model = 'gpt-5-mini'
-const promptVersion = 'radas-research-v1'
+const promptVersion = 'radas-research-v1-gmv-max'
 
 const researchSchema = {
   type: 'object',
@@ -84,7 +84,7 @@ Deno.serve(async (request) => {
 
   const { data: research, error: researchError } = await admin
     .from('researches')
-    .select('id, product_name, category, platform, price, commission_amount, product_url, official_description')
+    .select('id, product_name, category, platform, price, commission_amount, product_url, official_description, gmv_max_status')
     .eq('id', researchId)
     .single()
   if (researchError || !research) return json({ error: 'Research was not found.' }, 404)
@@ -97,6 +97,7 @@ Deno.serve(async (request) => {
     commission_amount: research.commission_amount,
     product_url: research.product_url,
     official_description: research.official_description,
+    gmv_max_status: research.gmv_max_status ?? 'unknown',
   }
 
   const { data: run, error: runError } = await admin.from('research_generation_runs').insert({
@@ -123,6 +124,11 @@ Deno.serve(async (request) => {
           'Nilai potensi berdasarkan maklumat yang diberikan sahaja. Jangan mereka data jualan, trend, testimoni atau tuntutan kesihatan.',
           'Jika bukti tidak mencukupi, nyatakan batas maklumat dan pilih verdict perlu_dipantau.',
           'Jangan gunakan skor angka, bintang atau dakwaan pendapatan.',
+          'Anggap gmv_max_status hanya sebagai Seller Support Signal tambahan, bukan scoring mutlak atau penentu tunggal verdict.',
+          'Tafsir confirmed_active sebagai signal sokongan distribution atau paid promotion yang lebih kuat; indicated sebagai petunjuk sokongan yang belum disahkan; unknown tanpa membuat sebarang andaian; dan inactive sebagai tiada signal sokongan GMV Max berdasarkan status yang dimasukkan.',
+          'Jangan nyatakan atau menyiratkan bahawa GMV Max menjamin jualan affiliate, paid traffic, produk laku atau produk viral.',
+          'Gunakan bahasa berhati-hati seperti seller menunjukkan signal sokongan melalui GMV Max dan jelaskan bahawa signal itu bukan jaminan prestasi affiliate.',
+          'Hasilkan verdict secara kualitatif berdasarkan gabungan semua input research yang tersedia, bukan GMV Max sahaja.',
           'Hasilkan cadangan content yang praktikal, jujur dan sesuai untuk short-form affiliate content.',
           'AI menyediakan draf editorial; jangan menyatakan bahawa produk telah disahkan atau terbukti tanpa bukti.',
         ].join('\n'),
