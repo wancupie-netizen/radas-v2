@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowUpRight, Bookmark, BookmarkCheck, CheckCircle2, ExternalLink, Lightbulb, LoaderCircle, Play, PlayCircle, ShieldCheck, Target, Users, Video } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, Bookmark, BookmarkCheck, CheckCircle2, ExternalLink, Lightbulb, LoaderCircle, Megaphone, Play, PlayCircle, ShieldCheck, Target, Users, Video } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
@@ -6,10 +6,15 @@ import { getPublishedResearchBySlug } from '../lib/database'
 import { getProductImageUrl } from '../lib/research-admin'
 import type { ContentAngle, PlaybookStep } from '../lib/research-ai'
 import { isResearchSaved, removeSavedResearch, saveResearch } from '../lib/watchlist'
-import type { ResearchRow } from '../types/database'
+import type { GmvMaxStatus, ResearchRow } from '../types/database'
 
 const verdictLabels = { layak_diuji: 'Layak Diuji', perlu_dipantau: 'Perlu Dipantau', tidak_disyorkan: 'Tidak Disyorkan' }
 const integrityLabels = { reviewed: 'Disemak RADAS', limited_information: 'Maklumat Terhad', update_required: 'Perlu Dikemas Kini' }
+const gmvMaxBadges: Partial<Record<GmvMaxStatus, { label: string; tone: string }>> = {
+  confirmed_active: { label: 'GMV Max Aktif', tone: 'confirmed' },
+  indicated: { label: 'Petunjuk GMV Max', tone: 'indicated' },
+  inactive: { label: 'GMV Max Tidak Aktif', tone: 'inactive' },
+}
 
 function getVideoEmbed(url: string) {
   try {
@@ -66,11 +71,12 @@ export function ResearchDetailPage() {
   const playbook = item.execution_playbook as unknown as PlaybookStep[]
   const verifiedDate = item.last_verified_at ? new Intl.DateTimeFormat('ms-MY', { dateStyle: 'medium' }).format(new Date(item.last_verified_at)) : '-'
   const creatorLabel = item.creator_count === null ? 'Belum direkod' : `${Number(item.creator_count).toLocaleString('ms-MY')} creator`
+  const gmvMaxBadge = gmvMaxBadges[item.gmv_max_status]
 
   return (
     <>
       <Link className="back-link" to="/research"><ArrowLeft /> Kembali ke Research Library</Link>
-      <section className="live-detail-hero"><div className="live-detail-image">{imageUrl ? <img src={imageUrl} alt={item.product_name} /> : <span>{item.product_name.slice(0, 2).toUpperCase()}</span>}</div><div><span className="eyebrow">{item.category} &middot; {item.platform}</span><h1>{item.product_name}</h1><p>{item.research_snapshot}</p><div className="detail-badges"><span className={`verdict ${item.verdict === 'layak_diuji' ? 'positive' : item.verdict === 'perlu_dipantau' ? 'watch' : 'negative'}`}>{item.verdict ? verdictLabels[item.verdict] : 'Belum dinilai'}</span><span>{item.access_level.toUpperCase()}</span></div></div><div className="detail-actions"><a className="button button-primary" href={item.product_url} target="_blank" rel="noreferrer">Lihat produk <ArrowUpRight /></a><button className={`button watchlist-button ${saved ? 'saved' : ''}`} disabled={savingWatchlist} onClick={() => void toggleWatchlist()} aria-pressed={saved}>{savingWatchlist ? <LoaderCircle className="spin" /> : saved ? <BookmarkCheck /> : <Bookmark />}{saved ? 'Tersimpan' : 'Simpan research'}</button>{watchlistError ? <small>{watchlistError}</small> : null}</div></section>
+      <section className="live-detail-hero"><div className="live-detail-image">{imageUrl ? <img src={imageUrl} alt={item.product_name} /> : <span>{item.product_name.slice(0, 2).toUpperCase()}</span>}</div><div><span className="eyebrow">{item.category} &middot; {item.platform}</span><h1>{item.product_name}</h1><p>{item.research_snapshot}</p><div className="detail-badges"><span className={`verdict ${item.verdict === 'layak_diuji' ? 'positive' : item.verdict === 'perlu_dipantau' ? 'watch' : 'negative'}`}>{item.verdict ? verdictLabels[item.verdict] : 'Belum dinilai'}</span>{gmvMaxBadge ? <span className={`gmv-max-badge ${gmvMaxBadge.tone}`} title="Seller Support Signal — bukan jaminan prestasi affiliate"><Megaphone aria-hidden="true" />{gmvMaxBadge.label}</span> : null}<span>{item.access_level.toUpperCase()}</span></div></div><div className="detail-actions"><a className="button button-primary" href={item.product_url} target="_blank" rel="noreferrer">Lihat produk <ArrowUpRight /></a><button className={`button watchlist-button ${saved ? 'saved' : ''}`} disabled={savingWatchlist} onClick={() => void toggleWatchlist()} aria-pressed={saved}>{savingWatchlist ? <LoaderCircle className="spin" /> : saved ? <BookmarkCheck /> : <Bookmark />}{saved ? 'Tersimpan' : 'Simpan research'}</button>{watchlistError ? <small>{watchlistError}</small> : null}</div></section>
       <section className="detail-stats"><div><span>Harga</span><strong>RM{Number(item.price).toFixed(2)}</strong></div><div><span>Anggaran komisen</span><strong>{item.commission_amount === null ? '-' : `RM${Number(item.commission_amount).toFixed(2)}`}</strong></div><div><span>Jumlah creator</span><strong><Users /> {creatorLabel}</strong></div><div><span>Platform</span><strong>{item.platform}</strong></div></section>
       <div className="published-layout">
         <main className="published-main">
