@@ -7,7 +7,14 @@ const corsHeaders = {
 }
 
 const model = 'gpt-5-mini'
-const promptVersion = 'radas-research-v1-gmv-max'
+const promptVersion = 'radas-research-v1-gmv-max-v2'
+
+const gmvMaxContexts = {
+  confirmed_active: 'Disahkan aktif — seller menunjukkan signal sokongan distribution atau paid promotion melalui GMV Max.',
+  indicated: 'Ada petunjuk sokongan melalui GMV Max, tetapi status itu belum disahkan.',
+  unknown: 'Tidak diketahui — tiada maklumat mencukupi dan jangan membuat andaian sama ada GMV Max aktif atau tidak.',
+  inactive: 'Tidak aktif berdasarkan maklumat yang dimasukkan — tiada signal sokongan GMV Max untuk produk ini.',
+} as const
 
 const researchSchema = {
   type: 'object',
@@ -89,6 +96,9 @@ Deno.serve(async (request) => {
     .single()
   if (researchError || !research) return json({ error: 'Research was not found.' }, 404)
 
+  const gmvMaxStatus = research.gmv_max_status in gmvMaxContexts
+    ? research.gmv_max_status as keyof typeof gmvMaxContexts
+    : 'unknown'
   const inputSnapshot = {
     product_name: research.product_name,
     category: research.category,
@@ -97,8 +107,9 @@ Deno.serve(async (request) => {
     commission_amount: research.commission_amount,
     product_url: research.product_url,
     official_description: research.official_description,
-    gmv_max_status: research.gmv_max_status ?? 'unknown',
+    gmv_max_status: gmvMaxStatus,
   }
+  const aiInput = { ...inputSnapshot, gmv_max_status: gmvMaxContexts[gmvMaxStatus] }
 
   const { data: run, error: runError } = await admin.from('research_generation_runs').insert({
     research_id: research.id,
@@ -125,14 +136,14 @@ Deno.serve(async (request) => {
           'Jika bukti tidak mencukupi, nyatakan batas maklumat dan pilih verdict perlu_dipantau.',
           'Jangan gunakan skor angka, bintang atau dakwaan pendapatan.',
           'Anggap gmv_max_status hanya sebagai Seller Support Signal tambahan, bukan scoring mutlak atau penentu tunggal verdict.',
-          'Tafsir confirmed_active sebagai signal sokongan distribution atau paid promotion yang lebih kuat; indicated sebagai petunjuk sokongan yang belum disahkan; unknown tanpa membuat sebarang andaian; dan inactive sebagai tiada signal sokongan GMV Max berdasarkan status yang dimasukkan.',
+          'Gunakan interpretasi status GMV Max dalam input sebagai konteks semula jadi dan jangan paparkan nilai enum teknikal atau nama kod status kepada pembaca.',
           'Jangan nyatakan atau menyiratkan bahawa GMV Max menjamin jualan affiliate, paid traffic, produk laku atau produk viral.',
           'Gunakan bahasa berhati-hati seperti seller menunjukkan signal sokongan melalui GMV Max dan jelaskan bahawa signal itu bukan jaminan prestasi affiliate.',
           'Hasilkan verdict secara kualitatif berdasarkan gabungan semua input research yang tersedia, bukan GMV Max sahaja.',
           'Hasilkan cadangan content yang praktikal, jujur dan sesuai untuk short-form affiliate content.',
           'AI menyediakan draf editorial; jangan menyatakan bahawa produk telah disahkan atau terbukti tanpa bukti.',
         ].join('\n'),
-        input: `Sediakan research berstruktur untuk data produk berikut:\n${JSON.stringify(inputSnapshot, null, 2)}`,
+        input: `Sediakan research berstruktur untuk data produk berikut:\n${JSON.stringify(aiInput, null, 2)}`,
         text: { format: { type: 'json_schema', name: 'radas_product_research', strict: true, schema: researchSchema } },
         max_output_tokens: 5000,
       }),
