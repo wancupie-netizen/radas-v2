@@ -8,6 +8,7 @@ import { AIReviewPage } from './pages/AIReviewPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
 import { ProfilePage } from './pages/ProfilePage'
+import { ProPage } from './pages/ProPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { ResearchDetailPage } from './pages/ResearchDetailPage'
 import { ResearchLibraryPage } from './pages/ResearchLibraryPage'
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="research" element={<ResearchLibraryPage />} />
         <Route path="saved" element={<SavedResearchPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="pro" element={<ProPage />} />
         <Route path="announcements" element={<AnnouncementsPage />} />
         <Route path="research/:researchId" element={<ResearchDetailPage />} />
         <Route path="admin" element={<AdminRoute><AdminStudioPage /></AdminRoute>} />

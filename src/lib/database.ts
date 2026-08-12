@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { ResearchRow } from '../types/database'
+import type { ProResearchTeaser, ResearchRow } from '../types/database'
 
 export async function listPublishedResearch(): Promise<ResearchRow[]> {
   if (!supabase) return []
@@ -26,4 +26,12 @@ export async function getPublishedResearchBySlug(slug: string): Promise<Research
 
   if (error) throw error
   return data as ResearchRow | null
+}
+
+export async function listProResearchTeasers(): Promise<ProResearchTeaser[]> {
+  if (!supabase) return []
+
+  const { data, error } = await supabase.rpc('list_pro_research_teasers')
+  if (error) throw error
+  return (data ?? []) as ProResearchTeaser[]
 }
