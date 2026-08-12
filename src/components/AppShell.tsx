@@ -16,7 +16,7 @@ const navigation = [
   { to: '/settings', label: 'Tetapan', icon: Settings, staffOnly: true, adminOnly: false },
 ]
 
-const pageNames: Record<string, string> = { '/': 'Ringkasan', '/research': 'Research Library', '/saved': 'Research Tersimpan', '/announcements': 'Pengumuman', '/profile': 'Profil Saya', '/admin': 'Admin Studio', '/admin/announcements': 'Urus Pengumuman', '/settings': 'Tetapan' }
+const pageNames: Record<string, string> = { '/': 'Ringkasan', '/research': 'Research Library', '/saved': 'Research Tersimpan', '/announcements': 'Pengumuman', '/profile': 'Profil Saya', '/pro': 'RADAS PRO', '/admin': 'Admin Studio', '/admin/announcements': 'Urus Pengumuman', '/settings': 'Tetapan' }
 
 export function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false)
