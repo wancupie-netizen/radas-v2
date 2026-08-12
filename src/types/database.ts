@@ -61,6 +61,19 @@ export interface ResearchRow {
   updated_at: string
 }
 
+export interface ProResearchTeaser {
+  id: string
+  product_name: string
+  category: string
+  platform: string
+  price: number
+  commission_amount: number | null
+  product_image_path: string | null
+  published_at: string
+  content_angle_count: number
+  reference_video_count: number
+}
+
 export interface ResearchGenerationRow {
   id: string
   research_id: string
