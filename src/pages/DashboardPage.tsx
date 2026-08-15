@@ -76,10 +76,10 @@ export function DashboardPage() {
 
       <AnnouncementBanner />
 
-      <section className="metric-grid" aria-label="Ringkasan workspace">
+      <section className={`metric-grid ${isAdmin ? '' : 'user-metric-grid'}`} aria-label="Ringkasan workspace">
         <article className="metric-card"><span className="metric-icon teal"><BookOpenText size={20} /></span><div><span>Research diterbitkan</span><strong>{summary.published.length}</strong><small>{summary.publishedThisMonth.length} diterbitkan bulan ini</small></div></article>
         <article className="metric-card"><span className="metric-icon blue"><CircleCheck size={20} /></span><div><span>Layak diuji</span><strong>{summary.suitable.length}</strong><small>{suitableRate}% daripada research diterbitkan</small></div></article>
-        <article className="metric-card"><span className="metric-icon amber"><Clock3 size={20} /></span><div><span>Menunggu semakan</span><strong>{summary.pending.length}</strong><small>{summary.drafts.length} draf belum dijana</small></div></article>
+        {isAdmin ? <article className="metric-card"><span className="metric-icon amber"><Clock3 size={20} /></span><div><span>Menunggu semakan</span><strong>{summary.pending.length}</strong><small>{summary.drafts.length} draf belum dijana</small></div></article> : null}
       </section>
 
       {isAdmin ? <section className="user-growth-section"><div className="section-heading"><div><span className="eyebrow">Pertumbuhan Pengguna</span><h2>Statistik pendaftaran</h2></div><span className="registration-status"><i /> Pendaftaran dibuka</span></div>{userStatsError ? <div className="studio-message error" role="alert"><span>{userStatsError}</span></div> : <div className="user-stat-grid" aria-label="Statistik pengguna RADAS"><article><span className="user-stat-icon total"><Users /></span><div><span>Jumlah pengguna</span><strong>{userStats?.total ?? '—'}</strong><small>Semua akaun berdaftar</small></div></article><article><span className="user-stat-icon starter"><Zap /></span><div><span>Pelan Starter</span><strong>{userStats?.starter ?? '—'}</strong><small>Akses permulaan</small></div></article><article><span className="user-stat-icon pro"><Crown /></span><div><span>Pelan Pro</span><strong>{userStats?.pro ?? '—'}</strong><small>Subscriber Pro</small></div></article><article><span className="user-stat-icon weekly"><UserPlus /></span><div><span>Minggu ini</span><strong>{userStats?.joinedThisWeek ?? '—'}</strong><small>Pendaftaran sejak Isnin</small></div></article></div>}</section> : null}
