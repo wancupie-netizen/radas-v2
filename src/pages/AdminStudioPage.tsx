@@ -148,6 +148,9 @@ export function AdminStudioPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!user) return
+    const submitter = (event.nativeEvent as SubmitEvent).submitter
+    const openAIReview = editing !== null && submitter instanceof HTMLButtonElement && submitter.value === 'review'
+    const researchIdForReview = editing?.id ?? null
     setSaving(true); setMessage(null)
     let uploadedPath: string | null = null
     try {
@@ -166,6 +169,7 @@ export function AdminStudioPage() {
       }
       setForm(emptyForm()); setEditing(null); setImageFile(null); setPreviewUrl(null); window.localStorage.removeItem(draftStorageKey)
       await loadResearch()
+      if (openAIReview && researchIdForReview) navigate(`/admin/research/${researchIdForReview}/review`)
     } catch (error) {
       if (uploadedPath) await removeProductImage(uploadedPath).catch(() => undefined)
       setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Draf tidak dapat disimpan.' })
@@ -223,7 +227,7 @@ export function AdminStudioPage() {
             <label className="field"><span>Imej produk</span><span className="file-input"><ImagePlus />{imageFile ? imageFile.name : editing?.product_image_path ? 'Tukar imej' : 'Pilih imej'}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={selectImage} /></span><small>JPEG, PNG atau WebP. Maksimum 5 MB.</small></label>
           </div>
           {previewUrl ? <div className="image-preview"><img src={previewUrl} alt="Preview produk" /><button type="button" onClick={() => { setImageFile(null); setPreviewUrl(editing ? getProductImageUrl(editing.product_image_path) : null) }}><X /> Buang pilihan</button></div> : null}
-          <div className="form-actions">{editing ? <button className="button button-ghost" type="button" onClick={resetForm}><X /> Batal edit</button> : null}<button className="button button-primary" disabled={saving} type="submit">{saving ? <LoaderCircle className="spin" /> : <Save />}{saving ? 'Menyimpan...' : editing ? 'Simpan perubahan' : 'Simpan draf'}</button></div>
+          <div className="form-actions">{editing ? <button className="button button-ghost" type="button" onClick={resetForm}><X /> Batal edit</button> : null}{editing ? <button className="button button-secondary" disabled={saving} name="afterSave" type="submit" value="review"><BrainCircuit /> Simpan & buka AI Review</button> : null}<button className="button button-primary" disabled={saving} type="submit">{saving ? <LoaderCircle className="spin" /> : <Save />}{saving ? 'Menyimpan...' : editing ? 'Simpan perubahan' : 'Simpan draf'}</button></div>
         </form>
         <aside className="draft-panel">
           <div className="draft-panel-head"><div><span className="eyebrow">Editorial queue</span><h2>Research tersimpan</h2></div><button className="icon-button" onClick={resetForm} title="Research baharu"><Plus /></button></div>
@@ -231,7 +235,7 @@ export function AdminStudioPage() {
           {loading ? <div className="draft-empty"><LoaderCircle className="spin" /><p>Memuatkan research...</p></div> : research.length === 0 ? <div className="draft-empty"><Sparkles /><h3>Belum ada draf</h3><p>Research pertama yang disimpan akan muncul di sini.</p></div> : <div className="draft-list">{research.map((item) => <article className="draft-item" key={item.id}>{item.product_image_path ? <img src={getProductImageUrl(item.product_image_path) ?? ''} alt="" /> : <span className="draft-placeholder">{item.product_name.slice(0, 2).toUpperCase()}</span>}<div className="draft-copy"><div><span className={`draft-status ${item.status}`}>{readableStatus(item.status)}</span><span>{item.access_level.toUpperCase()}</span></div><h3>{item.product_name}</h3><p>{item.platform} / {formatMoney(item.price)}</p></div><div className="draft-actions workflow-actions">
   {item.status === 'draft' ? <button className="queue-action ai-action" disabled={generatingId !== null} onClick={() => void handleGenerate(item)} title="Hasilkan research menggunakan AI">{generatingId === item.id ? <LoaderCircle className="spin" /> : <BrainCircuit />}<span>{generatingId === item.id ? 'Menjana...' : 'Jana dengan AI'}</span></button> : null}
   {(item.status === 'ai_generated' || item.status === 'in_review') ? <button className="queue-action review-action" onClick={() => navigate(`/admin/research/${item.id}/review`)} title="Buka hasil AI sedia ada"><Eye /><span>Buka hasil</span></button> : null}
-  {item.status === 'published' ? <button className="queue-action review-action" onClick={() => navigate(`/research/${item.slug}`)} title="Lihat research yang diterbitkan"><Eye /><span>Lihat research</span></button> : null}
+  {item.status === 'published' ? <><button className="queue-action review-action" onClick={() => navigate(`/research/${item.slug}`)} title="Lihat research yang diterbitkan"><Eye /><span>Lihat research</span></button><button className="queue-action ai-action" onClick={() => navigate(`/admin/research/${item.id}/review`)} title="Edit atau jana semula hasil AI"><BrainCircuit /><span>Edit AI</span></button></> : null}
   <button onClick={() => startEdit(item)} aria-label={`Edit ${item.product_name}`} title={item.status === 'published' ? 'Edit research diterbitkan' : 'Edit maklumat produk'}><Edit3 /></button>
   {item.status === 'published' ? <button className="archive-action" onClick={() => void handleArchive(item)} aria-label={`Arkibkan ${item.product_name}`} title="Arkibkan research"><Archive /></button> : null}
   {(item.status === 'draft' || item.status === 'archived') ? <button className="danger" onClick={() => void handleDelete(item)} aria-label={`Padam ${item.product_name}`} title="Padam research"><Trash2 /></button> : null}
