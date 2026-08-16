@@ -7,7 +7,7 @@ const corsHeaders = {
 }
 
 const model = 'gpt-5-mini'
-const promptVersion = 'radas-research-v1-gmv-max-v2'
+const promptVersion = 'radas-research-v2-structured-brief'
 
 const gmvMaxContexts = {
   confirmed_active: 'Disahkan aktif — seller menunjukkan signal sokongan distribution atau paid promotion melalui GMV Max.',
@@ -21,6 +21,32 @@ const researchSchema = {
   additionalProperties: false,
   properties: {
     research_snapshot: { type: 'string', description: 'Ringkasan padat produk dan peluang affiliate dalam Bahasa Melayu Malaysia.' },
+    research_brief: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        summary: { type: 'string', description: 'Ringkasan 2 hingga 3 ayat, maksimum 320 aksara.' },
+        facts: {
+          type: 'array',
+          maxItems: 4,
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              label: { type: 'string', description: 'Label ringkas maksimum 24 aksara.' },
+              value: { type: 'string' },
+              status: { type: 'string', enum: ['verified', 'seller_claim', 'unknown'] },
+            },
+            required: ['label', 'value', 'status'],
+          },
+        },
+        demand: { type: 'string', description: 'Permintaan atau masalah asas, maksimum 120 aksara.' },
+        content_opportunity: { type: 'string', description: 'Daya tarikan untuk content, maksimum 140 aksara.' },
+        risk: { type: 'string', description: 'Risiko utama secara berhati-hati, maksimum 160 aksara.' },
+        verification_items: { type: 'array', maxItems: 6, items: { type: 'string' } },
+      },
+      required: ['summary', 'facts', 'demand', 'content_opportunity', 'risk', 'verification_items'],
+    },
     product_pain: { type: 'string', description: 'Masalah utama pengguna yang cuba diselesaikan, berdasarkan fakta produk tanpa mereka tuntutan.' },
     verdict: { type: 'string', enum: ['layak_diuji', 'perlu_dipantau', 'tidak_disyorkan'] },
     verdict_reason: { type: 'string', description: 'Sebab editorial yang jelas tanpa skor angka.' },
@@ -53,7 +79,7 @@ const researchSchema = {
       },
     },
   },
-  required: ['research_snapshot', 'product_pain', 'verdict', 'verdict_reason', 'research_insight', 'suitable_for', 'content_angles', 'execution_playbook'],
+  required: ['research_snapshot', 'research_brief', 'product_pain', 'verdict', 'verdict_reason', 'research_insight', 'suitable_for', 'content_angles', 'execution_playbook'],
 }
 
 function json(data: unknown, status = 200) {
@@ -91,7 +117,7 @@ Deno.serve(async (request) => {
 
   const { data: research, error: researchError } = await admin
     .from('researches')
-    .select('id, product_name, category, platform, price, commission_amount, product_url, official_description, gmv_max_status')
+    .select('id, product_name, category, platform, price, commission_amount, commission_rate, product_url, official_description, gmv_max_status')
     .eq('id', researchId)
     .single()
   if (researchError || !research) return json({ error: 'Research was not found.' }, 404)
@@ -105,6 +131,7 @@ Deno.serve(async (request) => {
     platform: research.platform,
     price: research.price,
     commission_amount: research.commission_amount,
+    commission_rate: research.commission_rate,
     product_url: research.product_url,
     official_description: research.official_description,
     gmv_max_status: gmvMaxStatus,
@@ -141,6 +168,13 @@ Deno.serve(async (request) => {
           'Gunakan bahasa berhati-hati seperti seller menunjukkan signal sokongan melalui GMV Max dan jelaskan bahawa signal itu bukan jaminan prestasi affiliate.',
           'Hasilkan verdict secara kualitatif berdasarkan gabungan semua input research yang tersedia, bukan GMV Max sahaja.',
           'Hasilkan cadangan content yang praktikal, jujur dan sesuai untuk short-form affiliate content.',
+          'Untuk research_brief, sesuaikan fakta dengan kategori produk; jangan gunakan set fakta yang sama untuk semua kategori.',
+          'Hadkan summary kepada 320 aksara, demand 120 aksara, content_opportunity 140 aksara dan risk 160 aksara.',
+          'Pilih maksimum empat fakta yang paling membantu keputusan. Gunakan status verified hanya untuk fakta jelas dalam input, seller_claim untuk dakwaan penjual, dan unknown jika belum diketahui.',
+          'Pastikan setiap label fakta ringkas, mudah diimbas dan tidak melebihi 24 aksara. Contoh: Harga, Komisen, Kapasiti, Waranti.',
+          'Jangan kira, anggar atau simpulkan kadar komisen daripada harga dan jumlah komisen. Paparkan peratus hanya jika commission_rate mempunyai nilai dalam input.',
+          'Jika commission_rate tiada, paparkan commission_amount sahaja tanpa peratus dan jangan tandakan kadar yang dikira sebagai fakta daripada input.',
+          'Jangan mereka nilai untuk fakta yang tiada. Tulis Belum diketahui dan masukkan perkara itu dalam verification_items.',
           'AI menyediakan draf editorial; jangan menyatakan bahawa produk telah disahkan atau terbukti tanpa bukti.',
         ].join('\n'),
         input: `Sediakan research berstruktur untuk data produk berikut:\n${JSON.stringify(aiInput, null, 2)}`,
@@ -164,6 +198,7 @@ Deno.serve(async (request) => {
 
     const { error: updateError } = await admin.from('researches').update({
       research_snapshot: output.research_snapshot,
+      research_brief: output.research_brief,
       product_pain: output.product_pain,
       verdict: output.verdict,
       verdict_reason: output.verdict_reason,
