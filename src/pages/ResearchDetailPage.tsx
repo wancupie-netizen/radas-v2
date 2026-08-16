@@ -88,6 +88,7 @@ export function ResearchDetailPage() {
         </main>
         <aside className="integrity-panel"><ShieldCheck /><span className="eyebrow">Research Integrity</span><h3>{integrityLabels[item.integrity_status]}</h3><dl><div><dt>Last verified</dt><dd>{verifiedDate}</dd></div><div><dt>Verified by</dt><dd>RADAS Editorial</dd></div><div><dt>Access</dt><dd>{item.access_level.toUpperCase()}</dd></div></dl><p>Harga, komisen dan jumlah creator boleh berubah. Semak platform sebelum menghasilkan content.</p></aside>
       </div>
+      <nav className="detail-bottom-navigation" aria-label="Navigasi selepas research"><Link className="button button-secondary" to="/research"><ArrowLeft /> Kembali ke Research Library</Link></nav>
     </>
   )
 }

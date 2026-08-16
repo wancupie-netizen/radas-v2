@@ -4,12 +4,53 @@ import { useAuth } from '../auth/AuthContext'
 import { deleteAnnouncement, listAdminAnnouncements, saveAnnouncement } from '../lib/announcements'
 import type { AnnouncementAudience, AnnouncementRow, AnnouncementStatus, AnnouncementType } from '../types/database'
 
-const emptyForm = { title: '', body: '', type: 'info' as AnnouncementType, audience: 'all' as AnnouncementAudience, actionLabel: '', actionUrl: '', isPinned: false, status: 'draft' as AnnouncementStatus, expiresAt: '' }
+interface AnnouncementForm {
+  title: string
+  body: string
+  type: AnnouncementType
+  audience: AnnouncementAudience
+  actionLabel: string
+  actionUrl: string
+  isPinned: boolean
+  status: AnnouncementStatus
+  expiresAt: string
+}
+
+const emptyForm = (): AnnouncementForm => ({ title: '', body: '', type: 'info', audience: 'all', actionLabel: '', actionUrl: '', isPinned: false, status: 'draft', expiresAt: '' })
+const announcementDraftKey = 'radas:admin-announcement-form:v1'
+const announcementEditKeyPrefix = 'radas:admin-announcement-edit:v1:'
+const activeAnnouncementEditKey = 'radas:admin-announcement-active-edit:v1'
+
+function normalizeForm(value: unknown, fallback = emptyForm()): AnnouncementForm {
+  if (!value || typeof value !== 'object') return fallback
+  const saved = value as Partial<AnnouncementForm>
+  return {
+    title: typeof saved.title === 'string' ? saved.title : fallback.title,
+    body: typeof saved.body === 'string' ? saved.body : fallback.body,
+    type: saved.type === 'info' || saved.type === 'update' || saved.type === 'important' ? saved.type : fallback.type,
+    audience: saved.audience === 'all' || saved.audience === 'starter' || saved.audience === 'pro' ? saved.audience : fallback.audience,
+    actionLabel: typeof saved.actionLabel === 'string' ? saved.actionLabel : fallback.actionLabel,
+    actionUrl: typeof saved.actionUrl === 'string' ? saved.actionUrl : fallback.actionUrl,
+    isPinned: typeof saved.isPinned === 'boolean' ? saved.isPinned : fallback.isPinned,
+    status: saved.status === 'draft' || saved.status === 'published' ? saved.status : fallback.status,
+    expiresAt: typeof saved.expiresAt === 'string' ? saved.expiresAt : fallback.expiresAt,
+  }
+}
+
+function readStoredForm(key: string, fallback = emptyForm()) {
+  try {
+    const saved = window.localStorage.getItem(key)
+    return saved ? normalizeForm(JSON.parse(saved), fallback) : fallback
+  } catch {
+    window.localStorage.removeItem(key)
+    return fallback
+  }
+}
 
 export function AdminAnnouncementsPage() {
   const { user } = useAuth()
   const [items, setItems] = useState<AnnouncementRow[]>([])
-  const [form, setForm] = useState(emptyForm)
+  const [form, setForm] = useState(() => readStoredForm(announcementDraftKey))
   const [editing, setEditing] = useState<AnnouncementRow | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -18,16 +59,42 @@ export function AdminAnnouncementsPage() {
 
   async function refresh() { setItems(await listAdminAnnouncements()) }
   useEffect(() => { let active = true; listAdminAnnouncements().then((data) => { if (active) setItems(data) }).catch((caught) => { if (active) setError(caught instanceof Error ? caught.message : 'Senarai tidak dapat dimuatkan.') }).finally(() => { if (active) setLoading(false) }); return () => { active = false } }, [])
+  useEffect(() => {
+    const key = editing ? `${announcementEditKeyPrefix}${editing.id}` : announcementDraftKey
+    window.localStorage.setItem(key, JSON.stringify(form))
+  }, [editing, form])
+  useEffect(() => {
+    const activeId = window.localStorage.getItem(activeAnnouncementEditKey)
+    if (!activeId || editing) return
+    const activeItem = items.find((item) => item.id === activeId)
+    if (!activeItem) return
+    const databaseForm: AnnouncementForm = { title: activeItem.title, body: activeItem.body, type: activeItem.type, audience: activeItem.audience, actionLabel: activeItem.action_label ?? '', actionUrl: activeItem.action_url ?? '', isPinned: activeItem.is_pinned, status: activeItem.status, expiresAt: activeItem.expires_at ? activeItem.expires_at.slice(0, 16) : '' }
+    setEditing(activeItem)
+    setForm(readStoredForm(`${announcementEditKeyPrefix}${activeItem.id}`, databaseForm))
+  }, [editing, items])
 
-  function reset() { setEditing(null); setForm(emptyForm); setMessage(null); setError(null) }
+  function reset() {
+    if (editing) window.localStorage.removeItem(`${announcementEditKeyPrefix}${editing.id}`)
+    else window.localStorage.removeItem(announcementDraftKey)
+    window.localStorage.removeItem(activeAnnouncementEditKey)
+    setEditing(null); setForm(emptyForm()); setMessage(null); setError(null)
+  }
   function edit(item: AnnouncementRow) {
+    const databaseForm: AnnouncementForm = { title: item.title, body: item.body, type: item.type, audience: item.audience, actionLabel: item.action_label ?? '', actionUrl: item.action_url ?? '', isPinned: item.is_pinned, status: item.status, expiresAt: item.expires_at ? item.expires_at.slice(0, 16) : '' }
+    window.localStorage.setItem(activeAnnouncementEditKey, item.id)
     setEditing(item)
-    setForm({ title: item.title, body: item.body, type: item.type, audience: item.audience, actionLabel: item.action_label ?? '', actionUrl: item.action_url ?? '', isPinned: item.is_pinned, status: item.status, expiresAt: item.expires_at ? item.expires_at.slice(0, 16) : '' })
+    setForm(readStoredForm(`${announcementEditKeyPrefix}${item.id}`, databaseForm))
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   async function submit(event: React.FormEvent) {
     event.preventDefault(); if (!user) return; setSaving(true); setError(null); setMessage(null)
-    try { await saveAnnouncement({ ...form, publishedAt: editing?.published_at }, user.id, editing?.id); await refresh(); setMessage(editing ? 'Pengumuman berjaya dikemas kini.' : 'Pengumuman berjaya disimpan.'); setEditing(null); setForm(emptyForm) }
+    try {
+      await saveAnnouncement({ ...form, publishedAt: editing?.published_at }, user.id, editing?.id)
+      if (editing) window.localStorage.removeItem(`${announcementEditKeyPrefix}${editing.id}`)
+      else window.localStorage.removeItem(announcementDraftKey)
+      window.localStorage.removeItem(activeAnnouncementEditKey)
+      await refresh(); setMessage(editing ? 'Pengumuman berjaya dikemas kini.' : 'Pengumuman berjaya disimpan.'); setEditing(null); setForm(emptyForm())
+    }
     catch (caught) { setError(caught instanceof Error ? caught.message : 'Pengumuman tidak dapat disimpan.') }
     finally { setSaving(false) }
   }
