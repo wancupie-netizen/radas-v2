@@ -76,7 +76,10 @@ export function AIReviewPage() {
 
   async function regenerate() {
     if (!researchId) return
-    if (!window.confirm('Jana semula akan menggantikan output AI yang sedang dipaparkan. Teruskan?')) return
+    const warning = research?.status === 'published'
+      ? 'Jana semula akan menggantikan output AI dan mengeluarkan research ini sementara daripada paparan pengguna sehingga diterbitkan semula. Teruskan?'
+      : 'Jana semula akan menggantikan output AI yang sedang dipaparkan. Teruskan?'
+    if (!window.confirm(warning)) return
     setGenerating(true); setMessage(null)
     try { await generateResearch(researchId); await load(); setMessage({ type: 'success', text: 'Research berjaya dijana semula.' }) }
     catch (error) { setMessage({ type: 'error', text: error instanceof Error ? error.message : 'AI generation gagal.' }) }
