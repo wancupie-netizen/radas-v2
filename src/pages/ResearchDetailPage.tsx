@@ -4,6 +4,8 @@ import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { getPublishedResearchBySlug } from '../lib/database'
 import { getProductImageUrl } from '../lib/research-admin'
+import { recordResearchAccess } from '../lib/research-access'
+import type { ResearchAccessUsage } from '../lib/research-access'
 import type { ContentAngle, PlaybookStep } from '../lib/research-ai'
 import { isResearchSaved, removeSavedResearch, saveResearch } from '../lib/watchlist'
 import type { GmvMaxStatus, ResearchRow } from '../types/database'
@@ -30,13 +32,14 @@ function getVideoEmbed(url: string) {
 
 export function ResearchDetailPage() {
   const { researchId } = useParams()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [item, setItem] = useState<ResearchRow | null>(null)
   const [loading, setLoading] = useState(true)
   const [saved, setSaved] = useState(false)
   const [savingWatchlist, setSavingWatchlist] = useState(false)
   const [watchlistError, setWatchlistError] = useState<string | null>(null)
   const [activeVideo, setActiveVideo] = useState<number | null>(null)
+  const [accessUsage, setAccessUsage] = useState<ResearchAccessUsage | null>(null)
 
   useEffect(() => {
     let active = true
@@ -51,6 +54,15 @@ export function ResearchDetailPage() {
     isResearchSaved(user.id, item.id).then((value) => { if (active) setSaved(value) }).catch((error) => { if (active) setWatchlistError(error instanceof Error ? error.message : 'Watchlist tidak dapat dimuatkan.') }).finally(() => { if (active) setSavingWatchlist(false) })
     return () => { active = false }
   }, [user, item])
+
+  useEffect(() => {
+    if (!user || !item || !profile) return
+    let active = true
+    recordResearchAccess(item.id)
+      .then((usage) => { if (active) setAccessUsage(usage) })
+      .catch(() => { if (active) setAccessUsage(null) })
+    return () => { active = false }
+  }, [user, item, profile])
 
   async function toggleWatchlist() {
     if (!user || !item) return
@@ -77,7 +89,7 @@ export function ResearchDetailPage() {
   return (
     <>
       <Link className="back-link" to="/research"><ArrowLeft /> Kembali ke Research Library</Link>
-      <section className="live-detail-hero"><div className="live-detail-image">{imageUrl ? <img src={imageUrl} alt={item.product_name} /> : <span>{item.product_name.slice(0, 2).toUpperCase()}</span>}</div><div><span className="eyebrow">{item.category} &middot; {item.platform}</span><h1>{item.product_name}</h1><p>{item.research_brief?.summary ?? item.research_snapshot}</p><div className="detail-badges"><span className={`verdict ${item.verdict === 'layak_diuji' ? 'positive' : item.verdict === 'perlu_dipantau' ? 'watch' : 'negative'}`}>{item.verdict ? verdictLabels[item.verdict] : 'Belum dinilai'}</span>{gmvMaxBadge ? <span className={`gmv-max-badge ${gmvMaxBadge.tone}`} title="Seller Support Signal — bukan jaminan prestasi affiliate"><Megaphone aria-hidden="true" />{gmvMaxBadge.label}</span> : null}<span>{item.access_level.toUpperCase()}</span></div></div><div className="detail-actions"><a className="button button-primary" href={item.product_url} target="_blank" rel="noreferrer">Lihat produk <ArrowUpRight /></a><button className={`button watchlist-button ${saved ? 'saved' : ''}`} disabled={savingWatchlist} onClick={() => void toggleWatchlist()} aria-pressed={saved}>{savingWatchlist ? <LoaderCircle className="spin" /> : saved ? <BookmarkCheck /> : <Bookmark />}{saved ? 'Tersimpan' : 'Simpan research'}</button>{watchlistError ? <small>{watchlistError}</small> : null}</div></section>
+      <section className="live-detail-hero"><div className="live-detail-image">{imageUrl ? <img src={imageUrl} alt={item.product_name} /> : <span>{item.product_name.slice(0, 2).toUpperCase()}</span>}</div><div><span className="eyebrow">{item.category} &middot; {item.platform}</span><h1>{item.product_name}</h1><p>{item.research_brief?.summary ?? item.research_snapshot}</p><div className="detail-badges"><span className={`verdict ${item.verdict === 'layak_diuji' ? 'positive' : item.verdict === 'perlu_dipantau' ? 'watch' : 'negative'}`}>{item.verdict ? verdictLabels[item.verdict] : 'Belum dinilai'}</span>{gmvMaxBadge ? <span className={`gmv-max-badge ${gmvMaxBadge.tone}`} title="Seller Support Signal — bukan jaminan prestasi affiliate"><Megaphone aria-hidden="true" />{gmvMaxBadge.label}</span> : null}<span>{item.access_level.toUpperCase()}</span>{profile?.role === 'subscriber' && accessUsage?.plan === 'free' ? <span className="research-usage-badge">{accessUsage.used}/{accessUsage.limit} hari ini · pemerhatian</span> : null}</div></div><div className="detail-actions"><a className="button button-primary" href={item.product_url} target="_blank" rel="noreferrer">Lihat produk <ArrowUpRight /></a><button className={`button watchlist-button ${saved ? 'saved' : ''}`} disabled={savingWatchlist} onClick={() => void toggleWatchlist()} aria-pressed={saved}>{savingWatchlist ? <LoaderCircle className="spin" /> : saved ? <BookmarkCheck /> : <Bookmark />}{saved ? 'Tersimpan' : 'Simpan research'}</button>{watchlistError ? <small>{watchlistError}</small> : null}</div></section>
       <section className="detail-stats"><div><span>Harga</span><strong>RM{Number(item.price).toFixed(2)}</strong></div><div><span>Anggaran komisen</span><strong>{item.commission_amount === null ? '-' : `RM${Number(item.commission_amount).toFixed(2)}`}</strong></div><div><span>Jumlah creator</span><strong><Users /> {creatorLabel}</strong></div><div><span>Platform</span><strong>{item.platform}</strong></div></section>
       <div className="published-layout">
         <main className="published-main">

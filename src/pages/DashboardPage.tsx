@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { LiveResearchCard } from '../components/LiveResearchCard'
 import { AnnouncementBanner } from '../components/AnnouncementBanner'
+import { ResearchAccessDashboard } from '../components/ResearchAccessDashboard'
 import { listAdminResearch } from '../lib/research-admin'
 import { getAdminUserStats } from '../lib/user-stats'
 import type { AdminUserStats } from '../lib/user-stats'
@@ -83,6 +84,8 @@ export function DashboardPage() {
       </section>
 
       {isAdmin ? <section className="user-growth-section"><div className="section-heading"><div><span className="eyebrow">Pertumbuhan Pengguna</span><h2>Statistik pendaftaran</h2></div><span className="registration-status"><i /> Pendaftaran dibuka</span></div>{userStatsError ? <div className="studio-message error" role="alert"><span>{userStatsError}</span></div> : <div className="user-stat-grid" aria-label="Statistik pengguna RADAS"><article><span className="user-stat-icon total"><Users /></span><div><span>Jumlah pengguna</span><strong>{userStats?.total ?? '—'}</strong><small>Semua akaun berdaftar</small></div></article><article><span className="user-stat-icon starter"><Zap /></span><div><span>Pelan Starter</span><strong>{userStats?.starter ?? '—'}</strong><small>Akses permulaan</small></div></article><article><span className="user-stat-icon pro"><Crown /></span><div><span>Pelan Pro</span><strong>{userStats?.pro ?? '—'}</strong><small>Subscriber Pro</small></div></article><article><span className="user-stat-icon weekly"><UserPlus /></span><div><span>Minggu ini</span><strong>{userStats?.joinedThisWeek ?? '—'}</strong><small>Pendaftaran sejak Isnin</small></div></article></div>}</section> : null}
+
+      {isAdmin ? <ResearchAccessDashboard /> : null}
 
       {isStaff ? <section className="insight-banner">
         <div className="insight-icon"><Sparkles size={22} /></div>

@@ -689,3 +689,42 @@ button,input,select,textarea{font:inherit}
   .live-detail-image{height:auto;aspect-ratio:1/1;padding:16px;background:#f4f7fa}
   .live-detail-hero p{font-size:17px;font-weight:550;line-height:1.7}
 }
+
+/* RADAS research access observation */
+.research-usage-badge{color:#087f76!important;background:#e7faf7!important;border-color:#9edfd7!important}
+.access-dashboard-section{margin-top:24px;padding:26px;background:#fff;border:1px solid #d7e2eb;border-radius:16px;box-shadow:0 14px 38px rgba(23,53,82,.06)}
+.access-dashboard-section .section-heading{margin-bottom:18px}.access-dashboard-section .section-heading p{margin:5px 0 0;color:#688096;font-size:12px}
+.observation-badge{padding:8px 12px;display:flex;align-items:center;gap:8px;color:#946000;background:#fff6dc;border:1px solid #ecd18c;border-radius:999px;font-size:10px;font-weight:850;text-transform:uppercase}.observation-badge i{width:7px;height:7px;background:#e6a51c;border-radius:50%;box-shadow:0 0 0 4px rgba(230,165,28,.13)}
+.access-dashboard-state{padding:30px;display:flex;align-items:center;justify-content:center;gap:9px;color:#648096;font-size:13px}.access-dashboard-state svg{width:18px}
+.access-metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.access-metric-grid article{padding:17px;display:flex;align-items:center;gap:12px;background:#f7fafc;border:1px solid #dce6ed;border-radius:12px}.access-metric-grid article>span{width:39px;height:39px;display:grid;place-items:center;flex:0 0 auto;color:#087f76;background:#def7f3;border-radius:10px}.access-metric-grid svg{width:19px}.access-metric-grid article>div{display:flex;flex-direction:column}.access-metric-grid small{color:#6b8296;font-size:10px;font-weight:750}.access-metric-grid strong{color:#0d3152;font-size:25px;line-height:1.1}
+.access-dashboard-grid{margin-top:13px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(330px,.85fr);gap:13px}.access-panel{padding:20px;background:#f9fbfd;border:1px solid #dce6ed;border-radius:13px}.access-panel-heading,.access-panel-heading>div{display:flex;align-items:center;gap:10px}.access-panel-heading{justify-content:space-between}.access-panel-heading>div>svg{width:20px;color:#0d9c8e}.access-panel-heading span{display:flex;flex-direction:column}.access-panel-heading strong{color:#173552;font-size:13px}.access-panel-heading small,.access-panel-heading time{color:#7a90a3;font-size:9px}.quota-distribution{margin-top:17px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.quota-distribution div{padding:12px;display:flex;flex-direction:column;background:#fff;border:1px solid #dce6ed;border-radius:9px}.quota-distribution span{color:#6c8397;font-size:9px}.quota-distribution strong{color:#0d3152;font-size:21px}.top-research-list{margin-top:19px;display:grid}.top-research-list>strong{margin-bottom:6px;color:#294d6c;font-size:11px}.top-research-list>div{padding:9px 0;display:grid;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:7px;border-top:1px solid #e2e9ef}.top-research-list b{width:20px;height:20px;display:grid;place-items:center;color:#087f76;background:#e1f8f4;border-radius:6px;font-size:9px}.top-research-list span{overflow:hidden;color:#294d6c;font-size:11px;font-weight:750;text-overflow:ellipsis;white-space:nowrap}.top-research-list small{color:#7a90a3;font-size:9px}.top-research-list p{margin:8px 0 0;color:#7a90a3;font-size:11px}
+.library-readiness{margin-top:17px;display:grid;grid-template-columns:1fr 1fr;gap:8px}.library-readiness>div{padding:12px;display:flex;flex-direction:column;background:#fff;border:1px solid #dce6ed;border-radius:9px}.library-readiness strong{color:#0d3152;font-size:22px}.library-readiness span{color:#6c8397;font-size:9px}.readiness-track{margin-top:12px;height:8px;position:relative;background:#dfe8ee;border-radius:999px}.readiness-track>span{height:100%;display:block;background:linear-gradient(90deg,#18b8a7,#36c7e9);border-radius:inherit}.readiness-track small{display:block;margin-top:5px;color:#70879a;font-size:9px}.quota-settings{margin-top:25px;display:grid;grid-template-columns:1fr 1fr;gap:9px}.quota-settings label{display:flex;flex-direction:column;gap:6px}.quota-settings label>span{color:#294d6c;font-size:10px;font-weight:800}.quota-settings input{height:39px;padding:0 11px;border:1px solid #cfdde7;border-radius:8px;color:#173552;background:#fff;font:inherit;font-size:13px}.enforcement-lock{margin:12px 0;padding:12px;display:flex;gap:9px;color:#8a620e;background:#fff7df;border:1px solid #ecd394;border-radius:9px}.enforcement-lock>svg{width:17px;flex:0 0 auto}.enforcement-lock div{display:flex;flex-direction:column}.enforcement-lock strong{font-size:10px}.enforcement-lock span{margin-top:2px;font-size:9px;line-height:1.5}.access-settings-panel>.button{min-height:40px;margin-left:auto;font-size:11px}.access-settings-panel>.button svg{width:15px}
+@media(max-width:1100px){.access-metric-grid{grid-template-columns:repeat(2,1fr)}.access-dashboard-grid{grid-template-columns:1fr}}
+@media(max-width:620px){.access-dashboard-section{padding:20px}.access-dashboard-section .section-heading{align-items:flex-start;flex-direction:column}.access-metric-grid{grid-template-columns:1fr}.quota-distribution{grid-template-columns:repeat(2,1fr)}.quota-settings{grid-template-columns:1fr}.access-panel{padding:16px}.access-panel-heading time{display:none}}
+
+/* RADAS research access observation — typography polish */
+.access-dashboard-section{font-family:'Roboto',Arial,sans-serif}
+.access-dashboard-section>.section-heading .eyebrow{font-size:11px;font-weight:700}
+.access-dashboard-section>.section-heading h2{font-size:24px;font-weight:700;line-height:1.25;letter-spacing:-.015em}
+.access-dashboard-section .section-heading p{font-size:13px;font-weight:400;line-height:1.55}
+.observation-badge{font-size:11px;font-weight:700}
+.access-metric-grid small{font-size:12px;font-weight:500;line-height:1.35}
+.access-metric-grid strong{font-size:28px;font-weight:700}
+.access-panel-heading strong{font-size:14px;font-weight:700}
+.access-panel-heading small,.access-panel-heading time{font-size:10px;font-weight:400}
+.quota-distribution span{font-size:11px;font-weight:400}
+.quota-distribution strong{font-size:24px;font-weight:700}
+.top-research-list>strong{font-size:12px;font-weight:700}
+.top-research-list b{font-size:10px;font-weight:700}
+.top-research-list span{font-size:12px;font-weight:500}
+.top-research-list small{font-size:10px;font-weight:400}
+.top-research-list p{font-size:12px}
+.library-readiness strong{font-size:25px;font-weight:700}
+.library-readiness span{font-size:11px;font-weight:400}
+.readiness-track small{font-size:10px;font-weight:400}
+.quota-settings label>span{font-size:12px;font-weight:500}
+.quota-settings input{font-size:14px;font-weight:500}
+.enforcement-lock strong{font-size:12px;font-weight:700}
+.enforcement-lock span{font-size:11px;font-weight:400;line-height:1.55}
+.access-settings-panel>.button{font-size:12px;font-weight:700}
+@media(max-width:620px){.access-dashboard-section>.section-heading h2{font-size:21px}.access-metric-grid strong{font-size:26px}.top-research-list>div{grid-template-columns:22px minmax(0,1fr)}.top-research-list small{grid-column:2}}
