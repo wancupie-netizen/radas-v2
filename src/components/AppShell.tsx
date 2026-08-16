@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState } from 'react'
-import { Bookmark, BookOpenText, ChevronRight, LayoutDashboard, LogOut, Megaphone, Menu, Plus, Search, Settings, Sparkles, UserRound, X } from 'lucide-react'
+import { Bookmark, BookOpenText, ChevronRight, LayoutDashboard, LogOut, Megaphone, Menu, Plus, Settings, Sparkles, UserRound, X } from 'lucide-react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { BrandMark } from './BrandMark'
@@ -79,7 +79,7 @@ export function AppShell() {
       <main className="main-area">
         <header className="topbar">
           <div className="topbar-title"><button className="icon-button menu-button" onClick={() => setMobileOpen(true)} aria-label="Buka menu" aria-controls="mobile-navigation" aria-expanded={mobileOpen}><Menu size={21} /></button><div><span>RADAS Workspace</span><strong>{pageName}</strong></div></div>
-          <div className="topbar-actions"><NotificationBell /><label className="global-search"><Search size={17} /><input aria-label="Cari research" placeholder="Cari research..." /><kbd>Ctrl K</kbd></label>{isStaff ? <NavLink className="button button-primary topbar-cta" to="/admin"><Plus size={17} /> Research baharu</NavLink> : null}</div>
+          <div className="topbar-actions"><NotificationBell />{isStaff ? <NavLink className="button button-primary topbar-cta" to="/admin"><Plus size={17} /> Research baharu</NavLink> : null}</div>
         </header>
         <div className="page-container"><Outlet /></div>
       </main>

@@ -728,3 +728,23 @@ button,input,select,textarea{font:inherit}
 .enforcement-lock span{font-size:11px;font-weight:400;line-height:1.55}
 .access-settings-panel>.button{font-size:12px;font-weight:700}
 @media(max-width:620px){.access-dashboard-section>.section-heading h2{font-size:21px}.access-metric-grid strong{font-size:26px}.top-research-list>div{grid-template-columns:22px minmax(0,1fr)}.top-research-list small{grid-column:2}}
+
+/* RADAS Research Library — functional search, category and sorting */
+.library-toolbar{align-items:center}.library-search{min-width:220px}.library-search svg,.library-select svg{width:18px;flex:0 0 auto}.library-select{height:40px;min-width:190px;padding:0 11px;display:flex;align-items:center;gap:8px;color:#607d96;background:#fff;border:1px solid #d5e0ea;border-radius:8px}.library-select.sort-select{min-width:180px}.library-select select{width:100%;height:100%;border:0;outline:0;color:#244969;background:transparent;font-size:12px;font-weight:600;cursor:pointer}.library-clear{height:40px;padding:0 11px;display:inline-flex;align-items:center;gap:6px;border:0;color:#607890;background:transparent;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}.library-clear:hover{color:#173552}.library-clear svg{width:15px}.library-state .button{margin-top:12px}
+@media(max-width:760px){.library-toolbar{align-items:stretch;flex-direction:column}.library-search,.library-select,.library-select.sort-select{width:100%;min-width:0}.library-clear{align-self:flex-start}}
+
+/* RADAS Research Library — Roboto typography */
+.research-library-page{font-family:'Roboto',Arial,sans-serif}
+.research-library-page .page-heading .eyebrow{font-weight:700}
+.research-library-page .page-heading h1{font-weight:700;letter-spacing:-.02em}
+.research-library-page .page-heading p{font-weight:400}
+.research-library-page .library-search input{font-size:13px;font-weight:400}
+.research-library-page .library-select select{font-weight:500}
+.research-library-page .library-clear{font-weight:500}
+.research-library-page .result-line{font-weight:500;letter-spacing:.06em}
+.research-library-page .card-meta{font-weight:500}
+.research-library-page .research-card h3{font-weight:700;letter-spacing:-.01em}
+.research-library-page .research-card p{font-weight:400}
+.research-library-page .card-context,.research-library-page .card-numbers span{font-weight:400}
+.research-library-page .card-numbers strong,.research-library-page .card-footer a{font-weight:700}
+@media(max-width:600px){.research-library-page .page-heading p{font-size:16px;line-height:1.65}.research-library-page .library-search input,.research-library-page .library-select select{font-size:15px}.research-library-page .result-line{font-size:11px}.research-library-page .research-card h3{font-size:18px;line-height:1.35}.research-library-page .research-card p{font-size:15px;line-height:1.65}}
