@@ -1,11 +1,12 @@
 import { FunctionsHttpError } from '@supabase/supabase-js'
 import { supabase } from './supabase'
-import type { ResearchRow, ResearchVerdict } from '../types/database'
+import type { ResearchBrief, ResearchRow, ResearchVerdict } from '../types/database'
 
 export interface ContentAngle { title: string; hook: string; rationale: string }
 export interface PlaybookStep { step: string; action: string; notes: string }
 export interface AIResearchOutput {
   research_snapshot: string
+  research_brief: ResearchBrief
   product_pain: string
   verdict: ResearchVerdict
   verdict_reason: string
@@ -13,6 +14,14 @@ export interface AIResearchOutput {
   suitable_for: string[]
   content_angles: ContentAngle[]
   execution_playbook: PlaybookStep[]
+}
+
+export function validateResearchBrief(brief: ResearchBrief) {
+  if (!brief.summary.trim() || !brief.demand.trim() || !brief.content_opportunity.trim() || !brief.risk.trim()) return 'Lengkapkan semua medan Paparan Ringkas Pengguna.'
+  if (brief.summary.length > 320 || brief.demand.length > 120 || brief.content_opportunity.length > 140 || brief.risk.length > 160) return 'Teks Paparan Ringkas Pengguna melebihi had aksara.'
+  if (brief.facts.length < 1 || brief.facts.length > 4 || brief.facts.some((fact) => !fact.label.trim() || !fact.value.trim())) return 'Sediakan antara 1 hingga 4 fakta utama yang lengkap.'
+  if (brief.verification_items.length > 6) return 'Had maksimum ialah 6 perkara untuk disahkan.'
+  return null
 }
 
 export async function generateResearch(researchId: string) {
@@ -37,8 +46,11 @@ export async function getResearchForReview(id: string): Promise<ResearchRow> {
 
 export async function saveResearchReview(id: string, output: AIResearchOutput) {
   if (!supabase) throw new Error('Supabase belum dikonfigurasi.')
+  const briefError = validateResearchBrief(output.research_brief)
+  if (briefError) throw new Error(briefError)
   const { data, error } = await supabase.from('researches').update({
     research_snapshot: output.research_snapshot,
+    research_brief: output.research_brief,
     product_pain: output.product_pain,
     verdict: output.verdict,
     verdict_reason: output.verdict_reason,

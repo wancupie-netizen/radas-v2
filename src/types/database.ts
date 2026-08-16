@@ -9,6 +9,22 @@ export type GenerationStatus = 'queued' | 'running' | 'completed' | 'failed'
 export type AnnouncementType = 'info' | 'update' | 'important'
 export type AnnouncementAudience = 'all' | 'starter' | 'pro'
 export type AnnouncementStatus = 'draft' | 'published'
+export type ResearchFactStatus = 'verified' | 'seller_claim' | 'unknown'
+
+export interface ResearchBriefFact {
+  label: string
+  value: string
+  status: ResearchFactStatus
+}
+
+export interface ResearchBrief {
+  summary: string
+  facts: ResearchBriefFact[]
+  demand: string
+  content_opportunity: string
+  risk: string
+  verification_items: string[]
+}
 
 export interface ProfileRow {
   id: string
@@ -40,6 +56,7 @@ export interface ResearchRow {
   official_description: string
   product_image_path: string | null
   research_snapshot: string | null
+  research_brief: ResearchBrief | null
   product_pain: string | null
   verdict: ResearchVerdict | null
   verdict_reason: string | null
